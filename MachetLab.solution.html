@@ -1,0 +1,1852 @@
+<zip>
+<file name="index.html">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Assistant Laboratoire — Préparation des solutions & Convertisseurs</title>
+<style>
+  :root{
+    --accent:#3b82f6;        /* bleu */
+    --accent-2:#6d28d9;      /* violet */
+    --bg:#f7f9fc;
+    --card:#ffffff;
+    --muted:#6b7280;
+    --success:#10b981;
+    --danger:#ef4444;
+    --glass: rgba(255,255,255,0.6);
+    --radius:12px;
+    --shadow: 0 6px 20px rgba(18,24,40,0.08);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  /* Dark theme */
+  .dark { --bg:#0b1220; --card:#071022; --muted:#9aa4b2; --glass: rgba(255,255,255,0.03); color: #e6eef8; }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#e6eefc);transition:background .3s;color: #0b1220}
+  .dark body{background:linear-gradient(180deg,#071022,#071426)}
+  .app{display:flex;height:100vh;gap:18px;padding:18px}
+  .sidebar{
+    width:320px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px;
+    min-width:240px;max-width:360px;overflow:auto;
+  }
+  .header{
+    display:flex;align-items:center;gap:12px;
+  }
+  .logo{
+    width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:22px;
+  }
+  .org{font-weight:700;font-size:1rem}
+  .role{font-size:13px;color:var(--muted)}
+  .search{
+    display:flex;gap:8px;align-items:center;
+  }
+  .search input{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e6edf8;background:var(--glass);outline:none;font-size:14px;
+  }
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .small-btn{padding:8px 10px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;font-weight:600;cursor:pointer}
+  .ghost{background:transparent;border:1px solid rgba(11,17,32,0.06);color:var(--muted)}
+  .list{margin-top:8px;border-radius:10px;border:1px solid #eef4ff;overflow:auto;max-height:480px;background:linear-gradient(180deg,transparent,transparent)}
+  .chem-item{display:flex;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #f1f5f9;cursor:pointer;align-items:center}
+  .chem-item:last-child{border-bottom:none}
+  .chem-item:hover{background:#f1f8ff}
+  .chem-name{font-weight:600}
+  .pill{font-size:12px;padding:6px 8px;border-radius:999px;background:#eef2ff;color:#3730a3}
+  .main{
+    flex:1;display:flex;flex-direction:column;gap:16px;overflow:auto;
+  }
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .full{grid-column:1/-1}
+  h2{margin:0 0 10px 0;color:var(--accent-2)}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="number"],input[type="text"],select,textarea{
+    width:100%;padding:10px;border-radius:10px;border:1px solid #e6edf8;background:transparent;font-size:14px;
+  }
+  .row{display:flex;gap:12px;align-items:center}
+  .row .col{flex:1}
+  .result{background:linear-gradient(90deg,#f8fffb,#f2fff5);border-left:4px solid var(--success);padding:12px;border-radius:8px;margin-top:10px}
+  .actions{display:flex;gap:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .converter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .converter-card{padding:12px;border-radius:10px;border:1px solid #eef4ff}
+  footer.small{font-size:13px;color:var(--muted);text-align:center;padding:8px}
+
+  /* Language selector */
+  .lang-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .lang-btn {
+    padding: 6px 12px;
+    border: 1px solid #e6edf8;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .lang-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Periodic table */
+  .periodic-table {
+    display: grid;
+    grid-template-columns: repeat(18, 1fr);
+    gap: 2px;
+    margin-top: 16px;
+  }
+  .element {
+    padding: 8px 4px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+  }
+  .element:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .element-number {
+    font-size: 8px;
+    color: var(--muted);
+  }
+  .element-symbol {
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .element-name {
+    font-size: 8px;
+    color: var(--muted);
+  }
+  .alkali-metal { background-color: #fecaca; }
+  .alkaline-earth-metal { background-color: #fed7aa; }
+  .transition-metal { background-color: #fef08a; }
+  .basic-metal { background-color: #bbf7d0; }
+  .semimetal { background-color: #a7f3d0; }
+  .nonmetal { background-color: #bfdbfe; }
+  .halogen { background-color: #ddd6fe; }
+  .noble-gas { background-color: #fbcfe8; }
+  .lanthanide { background-color: #fde68a; }
+  .actinide { background-color: #fdba74; }
+
+  /* Protocol styling */
+  .protocol {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    border-left: 4px solid var(--accent);
+  }
+  .protocol h4 {
+    margin: 0 0 12px 0;
+    color: var(--accent-2);
+  }
+  .protocol ol {
+    margin: 0;
+    padding-left: 20px;
+  }
+  .protocol li {
+    margin-bottom: 8px;
+  }
+
+  /* Purity badge */
+  .purity-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #dcfce7;
+    color: #166534;
+    font-weight: 600;
+  }
+  .purity-ACS { background: #dbeafe; color: #1e40af; }
+  .purity-high { background: #dcfce7; color: #166534; }
+  .purity-medium { background: #fef3c7; color: #92400e; }
+  .purity-low { background: #fecaca; color: #991b1b; }
+
+  /* responsive */
+  @media (max-width:1000px){
+    .app{flex-direction:column;padding:12px}
+    .sidebar{width:100%;max-height:240px}
+    .grid{grid-template-columns:1fr}
+    .converter-grid{grid-template-columns:repeat(2,1fr)}
+    .periodic-table {
+      grid-template-columns: repeat(9, 1fr);
+    }
+  }
+
+  /* dark adjustments */
+  .dark .sidebar,.dark .card{background:var(--card);box-shadow:none;border:1px solid rgba(255,255,255,0.03)}
+  .dark .chem-item:hover{background:rgba(255,255,255,0.02)}
+  .dark .protocol {
+    background: rgba(255,255,255,0.05);
+  }
+  .help{font-size:12px;color:var(--muted);margin-top:6px}
+  .tag{font-size:12px;padding:6px 8px;border-radius:8px;background:rgba(59,130,246,0.08);color:var(--accent)}
+  .big-num{font-size:20px;font-weight:800;color:var(--accent-2)}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar card" aria-label="Navigation">
+    <div class="header">
+      <div class="logo">LAB</div>
+      <div>
+        <div class="org" id="org-text">École Secondaire Grande Rivière - Gatineau</div>
+        <div class="role" id="role-text">Technicien en Travaux Pratiques</div>
+      </div>
+    </div>
+
+    <div class="lang-selector">
+      <button class="lang-btn active" data-lang="fr">FR</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="ar">AR</button>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+      <div style="flex:1" class="search">
+        <input id="searchInput" placeholder="Rechercher substance, ex: HCl, NaOH, Ethanol..." oninput="filterList()" />
+      </div>
+      <button title="Basculer thème" class="small-btn ghost" id="themeToggle" onclick="toggleTheme()">🌙</button>
+    </div>
+
+    <div class="controls">
+      <button class="small-btn" onclick="showPanel('prep')" id="btn-prep">🧪 Préparation</button>
+      <button class="small-btn ghost" onclick="showPanel('convert')" id="btn-convert">🔄 Convertisseurs</button>
+      <button class="small-btn ghost" onclick="showPanel('periodic')" id="btn-periodic">🧪 Tableau Périodique</button>
+      <button class="small-btn ghost" onclick="showPanel('guide')" id="btn-guide">ℹ️ Guide</button>
+    </div>
+
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+      <div class="muted" id="db-text">Base de données</div>
+      <div class="tag" id="countTag">~250 substances</div>
+    </div>
+
+    <div class="list" id="chemList" role="list" aria-label="Liste des substances">
+      <!-- items injectés par JS -->
+    </div>
+
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="small-btn" onclick="resetAll()" id="btn-reset">Réinitialiser</button>
+      <button class="small-btn ghost" onclick="printResults()" id="btn-export">Exporter (PDF)</button>
+    </div>
+
+    <footer class="small" style="margin-top:auto">
+      © 2025 — Outil pour laboratoires scolaires — Auteur: Brahim Machet
+    </footer>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="main-title">Assistant Laboratoire — Préparation & Convertisseurs</h2>
+        <div class="muted" id="main-desc">Utilisez le panneau de gauche pour sélectionner une substance ou rechercher. Résultats et conversions à droite.</div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="muted" id="user-text">Utilisateur:</div>
+        <div style="font-weight:700">Technicien — Brahim Machet</div>
+      </div>
+    </div>
+
+    <!-- Panels -->
+    <section id="panel-prep" class="card">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:320px">
+          <h3 style="margin-top:0" id="prep-title">Préparation des solutions</h3>
+          <div class="muted" id="prep-desc">Choisissez la substance depuis la colonne gauche ou saisissez manuellement.</div>
+
+          <div style="margin-top:12px">
+            <label id="substance-label">Substance (formule ou nom)</label>
+            <input id="inputSub" placeholder="Ex: HCl ou Chlorure d'hydrogène" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+            <div>
+              <label id="mw-label">Masse molaire (g·mol⁻¹)</label>
+              <input id="inputMmw" type="number" step="0.0001" />
+            </div>
+            <div>
+              <label id="density-label">Densité (g·cm⁻³) — si liquide</label>
+              <input id="inputDensity" type="number" step="0.0001" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+            <div style="flex:1">
+              <label id="prep-type-label">Type de préparation</label>
+              <select id="prepType" onchange="switchPrep()">
+                <option value="dilution" id="dilution-option">Dilution (solution concentrée → solution plus faible)</option>
+                <option value="solid" id="solid-option">Dissolution d'un solide (par masse)</option>
+                <option value="gas" id="gas-option">Préparation à partir d'un gaz (par volume et densité)</option>
+                <option value="liquid_mass" id="liquid-option">Prélever un volume d'un liquide (avec densité)</option>
+              </select>
+            </div>
+            <div style="width:140px">
+              <label id="unit-label">Unités finale</label>
+              <select id="unitSelect">
+                <option value="mL">mL</option>
+                <option value="L">L</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- DILUTION -->
+          <div id="block-dilution" style="margin-top:12px">
+            <div class="row">
+              <div class="col">
+                <label id="c1-label">Concentration initiale C₁ (mol·L⁻¹)</label>
+                <input id="c1" type="number" step="0.0001" />
+              </div>
+              <div class="col">
+                <label id="c2-label">Concentration finale C₂ (mol·L⁻¹)</label>
+                <input id="c2" type="number" step="0.0001" />
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+              <div style="flex:1">
+                <label id="v2-label">Volume final V₂ (<span id="vUnitLabel">mL</span>)</label>
+                <input id="v2" type="number" step="0.1" />
+              </div>
+              <div style="width:140px;display:flex;flex-direction:column;justify-content:flex-end">
+                <button class="small-btn" onclick="calcDilution()" id="calc-dilution">Calculer</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SOLID -->
+          <div id="block-solid" style="display:none;margin-top:12px">
+            <div class="row">
+              <div class="col">
+                <label id="mass-label">Masse de solide (g)</label>
+                <input id="mass_solid" type="number" step="0.0001" />
+              </div>
+              <div class="col">
+                <label id="volume-solid-label">Volume final (mL)</label>
+                <input id="V_sol" type="number" step="0.1" />
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
+              <div style="flex:1">
+                <label id="mw-solid-label">Masse molaire utilisée (g·mol⁻¹)</label>
+                <input id="Mw_sol" type="number" step="0.0001" />
+              </div>
+              <div style="width:140px;display:flex;flex-direction:column;justify-content:flex-end">
+                <button class="small-btn" onclick="calcSolid()" id="calc-solid">Calculer</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GAS -->
+          <div id="block-gas" style="display:none;margin-top:12px">
+            <div class="row">
+              <div class="col">
+                <label id="gas-volume-label">Volume de gaz (L)</label>
+                <input id="volume_gas" type="number" step="0.0001" />
+              </div>
+              <div class="col">
+                <label id="gas-density-label">Densité du gaz (g/L)</label>
+                <input id="density_gas" type="number" step="0.0001" />
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
+              <div style="flex:1">
+                <label id="mw-gas-label">Masse molaire (g·mol⁻¹)</label>
+                <input id="Mw_gas" type="number" step="0.0001" />
+              </div>
+              <div style="width:140px;display:flex;flex-direction:column;justify-content:flex-end">
+                <button class="small-btn" onclick="calcGas()" id="calc-gas">Calculer</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- LIQUID MASS (use density) -->
+          <div id="block-liquid" style="display:none;margin-top:12px">
+            <div class="row">
+              <div class="col">
+                <label id="conc-liquid-label">Concentration commerciale (mol·L⁻¹) si connue</label>
+                <input id="concLiquid" type="number" step="0.0001" />
+              </div>
+              <div class="col">
+                <label id="volume-liquid-label">Volume final V (mL)</label>
+                <input id="V_liq" type="number" step="0.1" />
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
+              <div style="flex:1">
+                <label id="density-liquid-label">Densité (g·cm⁻³)</label>
+                <input id="D_liq" type="number" step="0.0001" />
+              </div>
+              <div style="width:140px;display:flex;flex-direction:column;justify-content:flex-end">
+                <button class="small-btn" onclick="calcLiquidMass()" id="calc-liquid">Calculer</button>
+              </div>
+            </div>
+            <div class="help" id="liquid-help">Si densité connue, calcul du volume/masse à prélever est possible.</div>
+          </div>
+
+          <div id="prepResult" class="result" style="display:none"></div>
+        </div>
+
+        <!-- Right column: Quick info & safety -->
+        <div style="width:360px;min-width:260px">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div class="muted" id="selected-text">Substance sélectionnée</div>
+                <div id="selName" style="font-weight:800;font-size:16px">Aucune</div>
+                <div class="muted" id="selFormula">--</div>
+              </div>
+              <div style="text-align:right">
+                <div class="muted">M</div>
+                <div class="big-num" id="selMw">--</div>
+                <div class="muted">g·mol⁻¹</div>
+              </div>
+            </div>
+            <hr style="margin:12px 0;border:none;border-top:1px solid #eef4ff" />
+            <div style="display:flex;gap:8px;flex-direction:column">
+              <div><strong id="density-info">Densité:</strong> <span id="selDensity">--</span></div>
+              <div><strong id="conc-info">Concentration commerciale typique:</strong> <span id="selConc">--</span></div>
+              <div><strong id="purity-info">Pureté:</strong> <span id="selPurity">--</span></div>
+              <div><strong id="precautions-info">Précautions:</strong> <span id="selPrec">--</span></div>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="small-btn" onclick="copySelected()" id="btn-copy">Copier</button>
+              <button class="small-btn ghost" onclick="openSafety()" id="btn-safety">Fiche sécurité (Aide)</button>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <div class="muted" id="shortcuts-text">Raccourcis</div>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <button class="small-btn" onclick="quickExample('HCl')" id="btn-hcl">Préparer 1M HCl 500 mL</button>
+              <button class="small-btn ghost" onclick="quickExample('NaOH')" id="btn-naoh">Préparer 0.1M NaOH 250 mL</button>
+              <button class="small-btn ghost" onclick="quickExample('C2H5OH')" id="btn-ethanol">Prélever Ethanol (densité)</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Convertisseurs -->
+    <section id="panel-convert" class="card" style="display:none">
+      <h3 style="margin-top:0" id="convert-title">Convertisseurs & Outils rapides</h3>
+      <div class="converter-grid">
+        <!-- Temperature -->
+        <div class="converter-card">
+          <label id="temp-label">Température</label>
+          <div class="row" style="margin-top:8px">
+            <input type="number" id="tC" placeholder="°C" oninput="convTemp('C')" />
+            <input type="number" id="tF" placeholder="°F" oninput="convTemp('F')" />
+            <input type="number" id="tK" placeholder="K" oninput="convTemp('K')" />
+          </div>
+          <div class="help" id="temp-help">Conversion automatique entre °C, °F et K</div>
+        </div>
+
+        <!-- Pressure -->
+        <div class="converter-card">
+          <label id="pressure-label">Pression</label>
+          <div class="row" style="margin-top:8px">
+            <input id="pPa" placeholder="Pa" oninput="convPressure('Pa')" />
+            <input id="pBar" placeholder="bar" oninput="convPressure('bar')" />
+            <input id="pAtm" placeholder="atm" oninput="convPressure('atm')" />
+          </div>
+        </div>
+
+        <!-- Volume -->
+        <div class="converter-card">
+          <label id="volume-label">Volume</label>
+          <div class="row" style="margin-top:8px">
+            <input id="vL" placeholder="L" oninput="convVol('L')" />
+            <input id="vML" placeholder="mL" oninput="convVol('mL')" />
+            <input id="vM3" placeholder="m³" oninput="convVol('m3')" />
+          </div>
+        </div>
+
+        <!-- Mass -->
+        <div class="converter-card">
+          <label id="mass-conv-label">Masse</label>
+          <div class="row" style="margin-top:8px">
+            <input id="mKg" placeholder="kg" oninput="convMass('kg')" />
+            <input id="mG" placeholder="g" oninput="convMass('g')" />
+            <input id="mMg" placeholder="mg" oninput="convMass('mg')" />
+          </div>
+        </div>
+
+        <!-- Concentration -->
+        <div class="converter-card">
+          <label id="conc-label">Concentration (mol·L⁻¹ ↔ g·L⁻¹)</label>
+          <div style="margin-top:8px">
+            <input id="concMm" placeholder="mol·L⁻¹" oninput="convConc()" />
+            <input id="conc_gL" placeholder="g·L⁻¹" oninput="convConc()" />
+            <div class="help" id="conc-help">Saisir Mw dans le champ de droite (g·mol⁻¹) pour convertir.</div>
+          </div>
+        </div>
+
+        <!-- Density -->
+        <div class="converter-card">
+          <label id="density-conv-label">Densité ↔ kg·m⁻³</label>
+          <div style="margin-top:8px">
+            <input id="dens_gcm3" placeholder="g·cm⁻³" oninput="convDensity('gcm3')" />
+            <input id="dens_kgm3" placeholder="kg·m⁻³" oninput="convDensity('kgm3')" />
+          </div>
+        </div>
+
+        <!-- Energy -->
+        <div class="converter-card">
+          <label id="energy-label">Énergie</label>
+          <div style="margin-top:8px">
+            <input id="eJ" placeholder="J" oninput="convEnergy('J')" />
+            <input id="ekJ" placeholder="kJ" oninput="convEnergy('kJ')" />
+            <input id="ecal" placeholder="cal" oninput="convEnergy('cal')" />
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+        <button class="small-btn" onclick="resetConverters()" id="btn-reset-convert">Réinitialiser</button>
+        <div class="muted" id="convert-tip">Tip: utilisez les convertisseurs pour vérifier vos unités avant préparation.</div>
+      </div>
+    </section>
+
+    <!-- Periodic Table -->
+    <section id="panel-periodic" class="card" style="display:none">
+      <h3 style="margin-top:0" id="periodic-title">Tableau Périodique des Éléments</h3>
+      <div class="muted" id="periodic-desc">Cliquez sur un élément pour voir ses détails</div>
+      
+      <div class="periodic-table" id="periodicTable">
+        <!-- Periodic table will be generated by JavaScript -->
+      </div>
+      
+      <div id="elementDetails" class="result" style="display:none; margin-top: 16px;">
+        <h4 id="element-title">Détails de l'élément</h4>
+        <div id="element-info"></div>
+      </div>
+    </section>
+
+    <!-- User Guide -->
+    <section id="panel-guide" class="card" style="display:none">
+      <h3 style="margin-top:0" id="guide-title">Guide d'Utilisation</h3>
+      
+      <div class="protocol">
+        <h4 id="guide-prep-title">Préparation des Solutions</h4>
+        <ol id="guide-prep-steps">
+          <li>Sélectionnez une substance dans la base de données ou saisissez ses propriétés manuellement</li>
+          <li>Choisissez le type de préparation (dilution, solide, gaz ou liquide)</li>
+          <li>Remplissez les champs requis selon le type de préparation</li>
+          <li>Cliquez sur "Calculer" pour obtenir les résultats et le protocole détaillé</li>
+        </ol>
+      </div>
+
+      <div class="protocol">
+        <h4 id="guide-solid-title">Préparation à partir d'un Solide</h4>
+        <ol id="guide-solid-steps">
+          <li>Pesez la masse exacte de solide nécessaire</li>
+          <li>Transvasez dans un ballon jaugé de volume approprié</li>
+          <li>Ajoutez un peu de solvant et agitez jusqu'à dissolution complète</li>
+          <li>Complétez avec le solvant jusqu'au trait de jauge</li>
+          <li>Homogénéisez soigneusement</li>
+        </ol>
+      </div>
+
+      <div class="protocol">
+        <h4 id="guide-gas-title">Préparation à partir d'un Gaz</h4>
+        <ol id="guide-gas-steps">
+          <li>Mesurez le volume de gaz nécessaire à l'aide d'une éprouvette à gaz</li>
+          <li>Transférez le gaz dans le récipient de dissolution</li>
+          <li>Ajoutez le solvant progressivement sous agitation</li>
+          <li>Contrôlez la température pendant la dissolution</li>
+          <li>Vérifiez la concentration finale par titrage si nécessaire</li>
+        </ol>
+      </div>
+
+      <div class="protocol">
+        <h4 id="guide-safety-title">Consignes de Sécurité</h4>
+        <ul id="guide-safety-list">
+          <li>Portez toujours des équipements de protection individuels (lunettes, gants, blouse)</li>
+          <li>Manipulez les produits chimiques sous hotte quand nécessaire</li>
+          <li>Connaissez les propriétés dangereuses des substances utilisées</li>
+          <li>Disposez des déchets chimiques conformément aux règlements</li>
+          <li>Consultez les fiches de données de sécurité (FDS) avant utilisation</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* =========================
+   Language Management
+   ========================= */
+const translations = {
+  fr: {
+    // General
+    "org-text": "École: Lycée Technique - Laboratoire",
+    "role-text": "Technicien en Travaux Pratiques",
+    "db-text": "Base de données",
+    "user-text": "Utilisateur:",
+    "main-title": "Assistant Laboratoire — Préparation & Convertisseurs",
+    "main-desc": "Utilisez le panneau de gauche pour sélectionner une substance ou rechercher. Résultats et conversions à droite.",
+    
+    // Buttons
+    "btn-prep": "🧪 Préparation",
+    "btn-convert": "🔄 Convertisseurs",
+    "btn-periodic": "🧪 Tableau Périodique",
+    "btn-guide": "ℹ️ Guide",
+    "btn-reset": "Réinitialiser",
+    "btn-export": "Exporter (PDF)",
+    "btn-copy": "Copier",
+    "btn-safety": "Fiche sécurité (Aide)",
+    
+    // Preparation panel
+    "prep-title": "Préparation des solutions",
+    "prep-desc": "Choisissez la substance depuis la colonne gauche ou saisissez manuellement.",
+    "substance-label": "Substance (formule ou nom)",
+    "mw-label": "Masse molaire (g·mol⁻¹)",
+    "density-label": "Densité (g·cm⁻³) — si liquide",
+    "prep-type-label": "Type de préparation",
+    "dilution-option": "Dilution (solution concentrée → solution plus faible)",
+    "solid-option": "Dissolution d'un solide (par masse)",
+    "gas-option": "Préparation à partir d'un gaz (par volume et densité)",
+    "liquid-option": "Prélever un volume d'un liquide (avec densité)",
+    "unit-label": "Unités finale",
+    "c1-label": "Concentration initiale C₁ (mol·L⁻¹)",
+    "c2-label": "Concentration finale C₂ (mol·L⁻¹)",
+    "v2-label": "Volume final V₂",
+    "mass-label": "Masse de solide (g)",
+    "volume-solid-label": "Volume final (mL)",
+    "mw-solid-label": "Masse molaire utilisée (g·mol⁻¹)",
+    "gas-volume-label": "Volume de gaz (L)",
+    "gas-density-label": "Densité du gaz (g/L)",
+    "mw-gas-label": "Masse molaire (g·mol⁻¹)",
+    "conc-liquid-label": "Concentration commerciale (mol·L⁻¹) si connue",
+    "volume-liquid-label": "Volume final V (mL)",
+    "density-liquid-label": "Densité (g·cm⁻³)",
+    "liquid-help": "Si densité connue, calcul du volume/masse à prélever est possible.",
+    
+    // Calculation buttons
+    "calc-dilution": "Calculer",
+    "calc-solid": "Calculer",
+    "calc-gas": "Calculer",
+    "calc-liquid": "Calculer",
+    
+    // Right panel
+    "selected-text": "Substance sélectionnée",
+    "density-info": "Densité:",
+    "conc-info": "Concentration commerciale typique:",
+    "purity-info": "Pureté:",
+    "precautions-info": "Précautions:",
+    "shortcuts-text": "Raccourcis",
+    "btn-hcl": "Préparer 1M HCl 500 mL",
+    "btn-naoh": "Préparer 0.1M NaOH 250 mL",
+    "btn-ethanol": "Prélever Ethanol (densité)",
+    
+    // Converters panel
+    "convert-title": "Convertisseurs & Outils rapides",
+    "temp-label": "Température",
+    "temp-help": "Conversion automatique entre °C, °F et K",
+    "pressure-label": "Pression",
+    "volume-label": "Volume",
+    "mass-conv-label": "Masse",
+    "conc-label": "Concentration (mol·L⁻¹ ↔ g·L⁻¹)",
+    "conc-help": "Saisir Mw dans le champ de droite (g·mol⁻¹) pour convertir.",
+    "density-conv-label": "Densité ↔ kg·m⁻³",
+    "energy-label": "Énergie",
+    "btn-reset-convert": "Réinitialiser",
+    "convert-tip": "Tip: utilisez les convertisseurs pour vérifier vos unités avant préparation.",
+    
+    // Periodic table panel
+    "periodic-title": "Tableau Périodique des Éléments",
+    "periodic-desc": "Cliquez sur un élément pour voir ses détails",
+    "element-title": "Détails de l'élément",
+    
+    // Guide panel
+    "guide-title": "Guide d'Utilisation",
+    "guide-prep-title": "Préparation des Solutions",
+    "guide-prep-steps": [
+      "Sélectionnez une substance dans la base de données ou saisissez ses propriétés manuellement",
+      "Choisissez le type de préparation (dilution, solide, gaz ou liquide)",
+      "Remplissez les champs requis selon le type de préparation",
+      "Cliquez sur 'Calculer' pour obtenir les résultats et le protocole détaillé"
+    ],
+    "guide-solid-title": "Préparation à partir d'un Solide",
+    "guide-solid-steps": [
+      "Pesez la masse exacte de solide nécessaire",
+      "Transvasez dans un ballon jaugé de volume approprié",
+      "Ajoutez un peu de solvant et agitez jusqu'à dissolution complète",
+      "Complétez avec le solvant jusqu'au trait de jauge",
+      "Homogénéisez soigneusement"
+    ],
+    "guide-gas-title": "Préparation à partir d'un Gaz",
+    "guide-gas-steps": [
+      "Mesurez le volume de gaz nécessaire à l'aide d'une éprouvette à gaz",
+      "Transférez le gaz dans le récipient de dissolution",
+      "Ajoutez le solvant progressivement sous agitation",
+      "Contrôlez la température pendant la dissolution",
+      "Vérifiez la concentration finale par titrage si nécessaire"
+    ],
+    "guide-safety-title": "Consignes de Sécurité",
+    "guide-safety-list": [
+      "Portez toujours des équipements de protection individuels (lunettes, gants, blouse)",
+      "Manipulez les produits chimiques sous hotte quand nécessaire",
+      "Connaissez les propriétés dangereuses des substances utilisées",
+      "Disposez des déchets chimiques conformément aux règlements",
+      "Consultez les fiches de données de sécurité (FDS) avant utilisation"
+    ]
+  },
+  en: {
+    // General
+    "org-text": "Ecole Secondaire Grande Rivière - Gatineau",
+    "role-text": "Laboratory Technician",
+    "db-text": "Database",
+    "user-text": "User:",
+    "main-title": "Laboratory Assistant — Preparation & Converters",
+    "main-desc": "Use the left panel to select a substance or search. Results and conversions on the right.",
+    
+    // Buttons
+    "btn-prep": "🧪 Preparation",
+    "btn-convert": "🔄 Converters",
+    "btn-periodic": "🧪 Periodic Table",
+    "btn-guide": "ℹ️ Guide",
+    "btn-reset": "Reset",
+    "btn-export": "Export (PDF)",
+    "btn-copy": "Copy",
+    "btn-safety": "Safety Sheet (Help)",
+    
+    // Preparation panel
+    "prep-title": "Solution Preparation",
+    "prep-desc": "Choose the substance from the left column or enter manually.",
+    "substance-label": "Substance (formula or name)",
+    "mw-label": "Molar mass (g·mol⁻¹)",
+    "density-label": "Density (g·cm⁻³) — if liquid",
+    "prep-type-label": "Preparation type",
+    "dilution-option": "Dilution (concentrated solution → weaker solution)",
+    "solid-option": "Solid dissolution (by mass)",
+    "gas-option": "Preparation from gas (by volume and density)",
+    "liquid-option": "Measure liquid volume (with density)",
+    "unit-label": "Final units",
+    "c1-label": "Initial concentration C₁ (mol·L⁻¹)",
+    "c2-label": "Final concentration C₂ (mol·L⁻¹)",
+    "v2-label": "Final volume V₂",
+    "mass-label": "Solid mass (g)",
+    "volume-solid-label": "Final volume (mL)",
+    "mw-solid-label": "Molar mass used (g·mol⁻¹)",
+    "gas-volume-label": "Gas volume (L)",
+    "gas-density-label": "Gas density (g/L)",
+    "mw-gas-label": "Molar mass (g·mol⁻¹)",
+    "conc-liquid-label": "Commercial concentration (mol·L⁻¹) if known",
+    "volume-liquid-label": "Final volume V (mL)",
+    "density-liquid-label": "Density (g·cm⁻³)",
+    "liquid-help": "If density known, volume/mass calculation is possible.",
+    
+    // Calculation buttons
+    "calc-dilution": "Calculate",
+    "calc-solid": "Calculate",
+    "calc-gas": "Calculate",
+    "calc-liquid": "Calculate",
+    
+    // Right panel
+    "selected-text": "Selected substance",
+    "density-info": "Density:",
+    "conc-info": "Typical commercial concentration:",
+    "purity-info": "Purity:",
+    "precautions-info": "Precautions:",
+    "shortcuts-text": "Shortcuts",
+    "btn-hcl": "Prepare 1M HCl 500 mL",
+    "btn-naoh": "Prepare 0.1M NaOH 250 mL",
+    "btn-ethanol": "Measure Ethanol (density)",
+    
+    // Converters panel
+    "convert-title": "Converters & Quick Tools",
+    "temp-label": "Temperature",
+    "temp-help": "Automatic conversion between °C, °F and K",
+    "pressure-label": "Pressure",
+    "volume-label": "Volume",
+    "mass-conv-label": "Mass",
+    "conc-label": "Concentration (mol·L⁻¹ ↔ g·L⁻¹)",
+    "conc-help": "Enter Mw in the right field (g·mol⁻¹) to convert.",
+    "density-conv-label": "Density ↔ kg·m⁻³",
+    "energy-label": "Energy",
+    "btn-reset-convert": "Reset",
+    "convert-tip": "Tip: use converters to check your units before preparation.",
+    
+    // Periodic table panel
+    "periodic-title": "Periodic Table of Elements",
+    "periodic-desc": "Click on an element to see its details",
+    "element-title": "Element Details",
+    
+    // Guide panel
+    "guide-title": "User Guide",
+    "guide-prep-title": "Solution Preparation",
+    "guide-prep-steps": [
+      "Select a substance from the database or enter its properties manually",
+      "Choose the preparation type (dilution, solid, gas or liquid)",
+      "Fill in the required fields according to the preparation type",
+      "Click 'Calculate' to get results and detailed protocol"
+    ],
+    "guide-solid-title": "Preparation from Solid",
+    "guide-solid-steps": [
+      "Weigh the exact mass of solid needed",
+      "Transfer to a volumetric flask of appropriate volume",
+      "Add some solvent and stir until complete dissolution",
+      "Complete with solvent up to the calibration mark",
+      "Mix thoroughly"
+    ],
+    "guide-gas-title": "Preparation from Gas",
+    "guide-gas-steps": [
+      "Measure the required gas volume using a gas syringe",
+      "Transfer the gas to the dissolution container",
+      "Add solvent gradually with stirring",
+      "Control temperature during dissolution",
+      "Verify final concentration by titration if necessary"
+    ],
+    "guide-safety-title": "Safety Instructions",
+    "guide-safety-list": [
+      "Always wear personal protective equipment (glasses, gloves, lab coat)",
+      "Handle chemicals under fume hood when necessary",
+      "Know the hazardous properties of substances used",
+      "Dispose of chemical waste according to regulations",
+      "Consult safety data sheets (SDS) before use"
+    ]
+  },
+  ar: {
+    // General
+    "org-text": "Ecole Secondaire Grande Rivière - Gatineau",
+    "role-text": "فني مختبر العلوم",
+    "db-text": "قاعدة البيانات",
+    "user-text": "المستخدم:",
+    "main-title": "مساعد المختبر — التحضير والمحولات",
+    "main-desc": "استخدم اللوحة اليسرى لاختيار مادة أو البحث. النتائج والتحويلات على اليمين.",
+    
+    // Buttons
+    "btn-prep": "🧪 التحضير",
+    "btn-convert": "🔄 المحولات",
+    "btn-periodic": "🧪 الجدول الدوري",
+    "btn-guide": "ℹ️ الدليل",
+    "btn-reset": "إعادة تعيين",
+    "btn-export": "تصدير (PDF)",
+    "btn-copy": "نسخ",
+    "btn-safety": "ورقة السلامة (مساعدة)",
+    
+    // Preparation panel
+    "prep-title": "تحضير المحاليل",
+    "prep-desc": "اختر المادة من العمود الأيسر أو أدخل يدويًا.",
+    "substance-label": "المادة (الصيغة أو الاسم)",
+    "mw-label": "الكتلة المولية (جم/مول)",
+    "density-label": "الكثافة (جم/سم³) — إذا كانت سائلة",
+    "prep-type-label": "نوع التحضير",
+    "dilution-option": "التخفيف (محلول مركز → محلول أضعف)",
+    "solid-option": "إذابة مادة صلبة (بالكتلة)",
+    "gas-option": "التحضير من غاز (بالحجم والكثافة)",
+    "liquid-option": "قياس حجم سائل (مع الكثافة)",
+    "unit-label": "الوحدات النهائية",
+    "c1-label": "التركيز الأولي C₁ (مول/لتر)",
+    "c2-label": "التركيز النهائي C₂ (مول/لتر)",
+    "v2-label": "الحجم النهائي V₂",
+    "mass-label": "كتلة المادة الصلبة (جم)",
+    "volume-solid-label": "الحجم النهائي (مل)",
+    "mw-solid-label": "الكتلة المولية المستخدمة (جم/مول)",
+    "gas-volume-label": "حجم الغاز (لتر)",
+    "gas-density-label": "كثافة الغاز (جم/لتر)",
+    "mw-gas-label": "الكتلة المولية (جم/مول)",
+    "conc-liquid-label": "التركيز التجاري (مول/لتر) إذا كان معروفًا",
+    "volume-liquid-label": "الحجم النهائي V (مل)",
+    "density-liquid-label": "الكثافة (جم/سم³)",
+    "liquid-help": "إذا كانت الكثافة معروفة، يمكن حساب الحجم/الكتلة.",
+    
+    // Calculation buttons
+    "calc-dilution": "حساب",
+    "calc-solid": "حساب",
+    "calc-gas": "حساب",
+    "calc-liquid": "حساب",
+    
+    // Right panel
+    "selected-text": "المادة المختارة",
+    "density-info": "الكثافة:",
+    "conc-info": "التركيز التجاري النموذجي:",
+    "purity-info": "النقاوة:",
+    "precautions-info": "الاحتياطات:",
+    "shortcuts-text": "الاختصارات",
+    "btn-hcl": "تحضير 1M حمض الهيدروكلوريك 500 مل",
+    "btn-naoh": "تحضير 0.1M هيدروكسيد الصوديوم 250 مل",
+    "btn-ethanol": "قياس الإيثانول (الكثافة)",
+    
+    // Converters panel
+    "convert-title": "المحولات والأدوات السريعة",
+    "temp-label": "درجة الحرارة",
+    "temp-help": "تحويل تلقائي بين °C، °F و K",
+    "pressure-label": "الضغط",
+    "volume-label": "الحجم",
+    "mass-conv-label": "الكتلة",
+    "conc-label": "التركيز (مول/لتر ↔ جم/لتر)",
+    "conc-help": "أدخل الكتلة المولية في الحقل الأيمن (جم/مول) للتحويل.",
+    "density-conv-label": "الكثافة ↔ كجم/م³",
+    "energy-label": "الطاقة",
+    "btn-reset-convert": "إعادة تعيين",
+    "convert-tip": "نصيحة: استخدم المحولات للتحقق من وحداتك قبل التحضير.",
+    
+    // Periodic table panel
+    "periodic-title": "الجدول الدوري للعناصر",
+    "periodic-desc": "انقر على عنصر لرؤية تفاصيله",
+    "element-title": "تفاصيل العنصر",
+    
+    // Guide panel
+    "guide-title": "دليل المستخدم",
+    "guide-prep-title": "تحضير المحاليل",
+    "guide-prep-steps": [
+      "اختر مادة من قاعدة البيانات أو أدخل خصائصها يدويًا",
+      "اختر نوع التحضير (تخفيف، مادة صلبة، غاز أو سائل)",
+      "املأ الحقول المطلوبة حسب نوع التحضير",
+      "انقر على 'حساب' للحصول على النتائج والبروتوكول المفصل"
+    ],
+    "guide-solid-title": "التحضير من مادة صلبة",
+    "guide-solid-steps": [
+      "زن الكتلة الدقيقة للمادة الصلبة المطلوبة",
+      "انقل إلى دورق حجمي بالحجم المناسب",
+      "أضف قليلاً من المذيب وحرك حتى الذوبان الكامل",
+      "أكمل بالمذيب حتى علامة القياس",
+      "اخلط جيدًا"
+    ],
+    "guide-gas-title": "التحضير من غاز",
+    "guide-gas-steps": [
+      "اقيس حجم الغاز المطلوب باستخدام محقنة غاز",
+      "انقل الغاز إلى وعاء الذوبان",
+      "أضف المذيب تدريجيًا مع التحريك",
+      "تحكم في درجة الحرارة أثناء الذوبان",
+      "تحقق من التركيز النهائي بالمعايرة إذا لزم الأمر"
+    ],
+    "guide-safety-title": "تعليمات السلامة",
+    "guide-safety-list": [
+      "ارتدِ دائمًا معدات الحماية الشخصية (نظارات، قفازات، معطف مختبر)",
+      "تعامل مع المواد الكيميائية تحت غطاء الدخان عند الضرورة",
+      "اعرف الخصائص الخطرة للمواد المستخدمة",
+      "تخلص من النفايات الكيميائية وفقًا للوائح",
+      "استشر أوراق بيانات السلامة قبل الاستخدام"
+    ]
+  }
+};
+
+let currentLanguage = 'fr';
+
+function changeLanguage(lang) {
+  currentLanguage = lang;
+  
+  // Update language buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.lang === lang) {
+      btn.classList.add('active');
+    }
+  });
+  
+  // Update all text elements
+  Object.keys(translations[lang]).forEach(key => {
+    const element = document.getElementById(key);
+    if (element) {
+      if (Array.isArray(translations[lang][key])) {
+        // For lists (like in guide)
+        const listItems = element.querySelectorAll('li');
+        translations[lang][key].forEach((text, index) => {
+          if (listItems[index]) {
+            listItems[index].textContent = text;
+          }
+        });
+      } else {
+        element.textContent = translations[lang][key];
+      }
+    }
+  });
+  
+  // Update HTML direction for Arabic
+  if (lang === 'ar') {
+    document.documentElement.dir = 'rtl';
+    document.body.style.textAlign = 'right';
+  } else {
+    document.documentElement.dir = 'ltr';
+    document.body.style.textAlign = 'left';
+  }
+}
+
+/* =========================
+   Base de données des substances (étendue)
+   ========================= */
+const CHEM_DB = [
+  // Acides courants
+  {id:'HCl', name:'Acide chlorhydrique', formula:'HCl', mw:36.46, density:1.18, typicalConc:'12 M', purity:'37%', precautions:'Corrosif; lunettes & gants'},
+  {id:'H2SO4', name:'Acide sulfurique', formula:'H₂SO₄', mw:98.08, density:1.84, typicalConc:'18 M', purity:'95-98%', precautions:'Très corrosif; chaleur à diluer'},
+  {id:'HNO3', name:'Acide nitrique', formula:'HNO₃', mw:63.01, density:1.51, typicalConc:'16 M', purity:'70%', precautions:'Oxydant puissant'},
+  {id:'CH3COOH', name:'Acide acétique', formula:'CH₃COOH', mw:60.05, density:1.049, typicalConc:'17.4 M', purity:'99-100%', precautions:'Irritant'},
+  {id:'H3PO4', name:'Acide phosphorique', formula:'H₃PO₄', mw:98.00, density:1.685, typicalConc:'14.7 M', purity:'85+%', precautions:'Irritant'},
+
+  // Bases
+  {id:'NaOH', name:'Hydroxyde de sodium', formula:'NaOH', mw:40.00, density:null, typicalConc:'soude caustique solide ou 10 M', purity:'99% min', precautions:'Corrosif; manipuler avec précaution'},
+  {id:'KOH', name:'Hydroxyde de potassium', formula:'KOH', mw:56.11, density:null, typicalConc:'solide', purity:'85+%', precautions:'Corrosif'},
+  {id:'NH3', name:'Ammoniaque (solution)', formula:'NH₃', mw:17.03, density:0.88, typicalConc:'~14.8 M (gaz) ou 0.1-1 M solutions', purity:'28-30%', precautions:'Toxique par inhalation'},
+
+  // Substances du fichier produit.txt
+  {id:'N2', name:'Azote Comprimé', formula:'N₂', mw:28.02, density:1.251, typicalConc:'gaz', purity:'99%', precautions:'Inerte'},
+  {id:'CO2', name:'Dioxyde de Carbone', formula:'CO₂', mw:44.01, density:1.977, typicalConc:'gaz', purity:'99%', precautions:'Asphyxiant'},
+  {id:'Alconox', name:'Alconox Powdered Precision Cleaner', formula:'-', mw:null, density:null, typicalConc:'poudre', purity:'-', precautions:'Irritant'},
+  {id:'AmOxalate', name:'Ammonium Oxalate Monohydrate', formula:'(NH₄)₂C₂O₄·H₂O', mw:142.11, density:null, typicalConc:'solide', purity:'98%', precautions:'Toxique'},
+  {id:'KBr', name:'Bromure de Potassium', formula:'KBr', mw:119.00, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Na2CO3_anhydre', name:'Carbonate de Sodium Anhydre', formula:'Na₂CO₃', mw:105.99, density:null, typicalConc:'solide', purity:'99%', precautions:'Irritant'},
+  {id:'Mg_poudre', name:'Magnesium Powder', formula:'Mg', mw:24.31, density:1.74, typicalConc:'solide', purity:'99%', precautions:'Inflammable'},
+  {id:'Hexanes', name:'Hexanes (Certified ACS)', formula:'C₆H₁₄', mw:86.18, density:0.659, typicalConc:'liquide', purity:'ACS', precautions:'Inflammable'},
+  {id:'H3PO4_85', name:'Phosphoric acid, 85+%', formula:'H₃PO₄', mw:98.00, density:1.685, typicalConc:'liquide', purity:'85+%', precautions:'Corrosif'},
+  {id:'KHP', name:'Biphtalate de Potassium', formula:'KHC₈H₄O₄', mw:204.22, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'KCl_ACS', name:'Potassium Chloride', formula:'KCl', mw:74.55, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'K2CrO4', name:'Chromate de Potassium', formula:'K₂CrO₄', mw:194.19, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'KH2PO4', name:'Potassium Dihydrogénophosphate', formula:'KH₂PO₄', mw:136.09, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'KI', name:'Iodure de Potassium', formula:'KI', mw:166.00, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'NaAcetate_tri', name:'Sodium Acétate Trihydrate', formula:'CH₃COONa·3H₂O', mw:136.08, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'NaHSO3', name:'Bisulfite de Sodium', formula:'NaHSO₃', mw:104.06, density:null, typicalConc:'solide', purity:'98%', precautions:'Irritant'},
+  {id:'Na2SO4_anhydre', name:'Sulfate de Sodium Anhydre', formula:'Na₂SO₄', mw:142.04, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Na2SO3', name:'Sulfite de Sodium', formula:'Na₂SO₃', mw:126.04, density:null, typicalConc:'solide', purity:'98%', precautions:'Irritant'},
+  {id:'Na2S2O3', name:'Sodium Thiosulfate', formula:'Na₂S₂O₃', mw:158.11, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Methanol', name:'Méthanol', formula:'CH₃OH', mw:32.04, density:0.791, typicalConc:'liquide', purity:'99%', precautions:'Toxique; inflammable'},
+  {id:'Ethanol_denat', name:'Alcool Ethylique, Anhydre Denature', formula:'C₂H₅OH', mw:46.07, density:0.789, typicalConc:'liquide', purity:'95%', precautions:'Inflammable'},
+  {id:'O2', name:'Oxygène, Comprimé', formula:'O₂', mw:32.00, density:1.429, typicalConc:'gaz', purity:'99%', precautions:'Support combustion'},
+  {id:'Bromophenol_blue', name:'Solution de Bleu de Bromophénol 0.04%', formula:'C₁₉H₁₀Br₄O₅S', mw:null, density:null, typicalConc:'solution 0.04%', purity:'-', precautions:'--'},
+  {id:'CaAcetate', name:'Acétate de Calcium Monohydraté', formula:'Ca(CH₃COO)₂·H₂O', mw:176.18, density:null, typicalConc:'solide', purity:'98%', precautions:'--'},
+  {id:'KCl_various', name:'Chlorure de Potassium', formula:'KCl', mw:74.55, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Storage_pH', name:'Storage Solution for pH and ORP Electrodes', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Lave_glace', name:'Lave-Glace -40°C', formula:'-', mw:null, density:null, typicalConc:'liquide', purity:'-', precautions:'Irritant'},
+  {id:'Bromothymol_blue', name:'Bleu Bromothymol', formula:'C₂₇H₂₈Br₂O₅S', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'AlNO3_9H2O', name:'Nitrate d\'Aluminium', formula:'Al(NO₃)₃·9H₂O', mw:375.13, density:null, typicalConc:'solide', purity:'98%', precautions:'Oxydant'},
+  {id:'NaNO2', name:'Nitrite de Sodium', formula:'NaNO₂', mw:69.00, density:null, typicalConc:'solide', purity:'98%', precautions:'Toxique'},
+  {id:'Sb', name:'Antimony', formula:'Sb', mw:121.76, density:6.68, typicalConc:'solide', purity:'99%', precautions:'Toxique'},
+  {id:'Silica_gel', name:'Silice #5679-25', formula:'SiO₂', mw:60.08, density:null, typicalConc:'gel', purity:'-', precautions:'Poussières'},
+  {id:'Amidon', name:'Amidon Soluble', formula:'(C₆H₁₀O₅)ₙ', mw:null, density:null, typicalConc:'poudre', purity:'-', precautions:'--'},
+  {id:'FeSO4_7H2O', name:'Sulfate de Fer (II), Heptahydrate', formula:'FeSO₄·7H₂O', mw:278.02, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'MgSO4_7H2O', name:'Magnesium Sulfate Heptahydrate', formula:'MgSO₄·7H₂O', mw:246.47, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'NH4SCN', name:'Ammonium Thiocyanate', formula:'NH₄SCN', mw:76.12, density:null, typicalConc:'solide', purity:'98%', precautions:'Toxique'},
+  {id:'Acetic_acid', name:'Acide Acétique', formula:'CH₃COOH', mw:60.05, density:1.049, typicalConc:'liquide', purity:'99%', precautions:'Corrosif'},
+  {id:'NaHCO3_baking', name:'Bicarbonate de Sodium', formula:'NaHCO₃', mw:84.01, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Dextrose_anhydre', name:'Dextrose, Anhydre', formula:'C₆H₁₂O₆', mw:180.16, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'HNO3_tech', name:'Acide Nitrique TECH', formula:'HNO₃', mw:63.01, density:1.51, typicalConc:'liquide', purity:'65%', precautions:'Corrosif'},
+  {id:'Zn_granular', name:'Zinc Metal Granular (40 Mesh)', formula:'Zn', mw:65.38, density:7.14, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Huile_immersion', name:'Huile d\'Immersion Cargille Type A et B', formula:'-', mw:null, density:null, typicalConc:'liquide', purity:'-', precautions:'--'},
+  {id:'Phenolphthalein', name:'Phénolphtaléine', formula:'C₂₀H₁₄O₄', mw:318.32, density:null, typicalConc:'solution 1%', purity:'99%', precautions:'Irritant'},
+  {id:'Methylene_blue', name:'Methylene Blue Chloride', formula:'C₁₆H₁₈ClN₃S', mw:319.85, density:null, typicalConc:'solution', purity:'99%', precautions:'--'},
+  {id:'Na2O2', name:'Peroxyde de Sodium', formula:'Na₂O₂', mw:77.98, density:null, typicalConc:'solide', purity:'96%', precautions:'Oxydant puissant'},
+  {id:'I2', name:'Iode', formula:'I₂', mw:253.81, density:4.93, typicalConc:'solide', purity:'99%', precautions:'Corrosif'},
+  {id:'Na2S2O3_5H2O', name:'Thiosulfate de Sodium Pentahydrate ACS', formula:'Na₂S₂O₃·5H₂O', mw:248.18, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'AgNO3_ACS', name:'Nitrate d\'Argent', formula:'AgNO₃', mw:169.87, density:null, typicalConc:'solide', purity:'ACS', precautions:'Tache la peau; toxique'},
+  {id:'Acetic_ACS', name:'Acide Acétique ACS', formula:'CH₃COOH', mw:60.05, density:1.049, typicalConc:'liquide', purity:'ACS', precautions:'Corrosif'},
+  {id:'Buffer_pH2', name:'Hydrion Buffer pH-2.00', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Oleic_acid', name:'Oleic Acid Lab-Grade', formula:'C₁₈H₃₄O₂', mw:282.47, density:0.895, typicalConc:'liquide', purity:'Lab grade', precautions:'--'},
+  {id:'CaSO4_hemi', name:'Calcium (AC385350025)', formula:'CaSO₄·½H₂O', mw:145.15, density:null, typicalConc:'solide', purity:'98%', precautions:'--'},
+  {id:'Methylene_blue_tri', name:'Bleu de Méthylène Trihydraté', formula:'C₁₆H₁₈ClN₃S·3H₂O', mw:373.90, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Dextrose_anhydre2', name:'Dextrose Anhydre', formula:'C₆H₁₂O₆', mw:180.16, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Ether_petrole', name:'Ether de Pétrole', formula:'-', mw:null, density:0.7, typicalConc:'liquide', purity:'-', precautions:'Inflammable'},
+  {id:'H2', name:'Hydrogène Comprimé', formula:'H₂', mw:2.02, density:0.0899, typicalConc:'gaz', purity:'99%', precautions:'Extrêmement inflammable'},
+  {id:'He', name:'Hélium', formula:'He', mw:4.00, density:0.1785, typicalConc:'gaz', purity:'99%', precautions:'Inerte'},
+  {id:'Thiosulfate_N10', name:'Thiosulfate N/10', formula:'Na₂S₂O₃', mw:158.11, density:null, typicalConc:'solution 0.1N', purity:'-', precautions:'--'},
+  {id:'Ca_indicator', name:'Calcium Indicator Liquid', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Ca_buffer', name:'Calcium Buffer', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Alkalinity_indicator', name:'Total Alkalinity Indicator', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'NaHSO4', name:'Sodium Bisulfate, Anhydrous, Technical Grade', formula:'NaHSO₄', mw:120.06, density:null, typicalConc:'solide', purity:'Tech grade', precautions:'Corrosif'},
+  {id:'Terpentine', name:'Térébenthine', formula:'-', mw:null, density:0.86, typicalConc:'liquide', purity:'-', precautions:'Inflammable'},
+  {id:'Al_powder', name:'Aluminum (Metallic, Powder)', formula:'Al', mw:26.98, density:2.70, typicalConc:'solide', purity:'99%', precautions:'Inflammable'},
+  {id:'NH4VO3', name:'Ammonium Metavanadate', formula:'NH₄VO₃', mw:116.98, density:null, typicalConc:'solide', purity:'98%', precautions:'Toxique'},
+  {id:'CaCO3_precip', name:'Calcium Carbonate Précipité', formula:'CaCO₃', mw:100.09, density:null, typicalConc:'solide', purity:'98%', precautions:'--'},
+  {id:'MgO', name:'Magnésium Oxyde', formula:'MgO', mw:40.30, density:null, typicalConc:'solide', purity:'98%', precautions:'Irritant'},
+  {id:'KIO3', name:'Iodate De Potassium', formula:'KIO₃', mw:214.00, density:null, typicalConc:'solide', purity:'99%', precautions:'Oxydant'},
+  {id:'Na2S2O4', name:'Dithionite de sodium', formula:'Na₂S₂O₄', mw:174.11, density:null, typicalConc:'solide', purity:'85%', precautions:'Réducteur fort'},
+  {id:'Na2HPO4', name:'Phosphate de Sodium, Dibasique', formula:'Na₂HPO₄', mw:141.96, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Na2SO4_10H2O', name:'Sulfate De Sodium Décalhydraté', formula:'Na₂SO₄·10H₂O', mw:322.20, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'NaSCN', name:'Thiocyanate de Sodium', formula:'NaSCN', mw:81.07, density:null, typicalConc:'solide', purity:'98%', precautions:'Toxique'},
+  {id:'Phenol_red', name:'Rouge de Phénol, Acide Libre', formula:'C₁₉H₁₄O₅S', mw:354.38, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Starch', name:'Amidon', formula:'(C₆H₁₀O₅)ₙ', mw:null, density:null, typicalConc:'poudre', purity:'-', precautions:'--'},
+  {id:'Sn', name:'Etain (Métal)', formula:'Sn', mw:118.71, density:7.31, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'CuCl2_2H2O', name:'Cuivre (II) Chlorure dihydraté', formula:'CuCl₂·2H₂O', mw:170.48, density:null, typicalConc:'solide', purity:'98%', precautions:'Toxique'},
+  {id:'Graphite', name:'Graphite Powder', formula:'C', mw:12.01, density:2.09, typicalConc:'poudre', purity:'99%', precautions:'Poussières'},
+  {id:'Fe2O3', name:'Iron (III) Oxide', formula:'Fe₂O₃', mw:159.69, density:5.24, typicalConc:'solide', purity:'98%', precautions:'--'},
+  {id:'Fe3O4', name:'Fer Oxyde', formula:'Fe₃O₄', mw:231.53, density:5.17, typicalConc:'solide', purity:'98%', precautions:'--'},
+  {id:'Mg_ribbon', name:'Magnesium', formula:'Mg', mw:24.31, density:1.74, typicalConc:'solide', purity:'99%', precautions:'Inflammable'},
+  {id:'SrCl2', name:'Strontium Chlorure', formula:'SrCl₂', mw:158.53, density:null, typicalConc:'solide', purity:'98%', precautions:'--'},
+  {id:'CO2_solid', name:'Dioxyde de Carbone Solide, ou Neige Carbonique', formula:'CO₂', mw:44.01, density:1.56, typicalConc:'solide', purity:'99%', precautions:'Brûlures froides'},
+  {id:'NaN3', name:'Azoture de Sodium', formula:'NaN₃', mw:65.01, density:null, typicalConc:'solide', purity:'99%', precautions:'Très toxique'},
+  {id:'KOH_pure', name:'Hydroxyde de Potassium', formula:'KOH', mw:56.11, density:null, typicalConc:'solide', purity:'85%', precautions:'Corrosif'},
+  {id:'Antigel_50', name:'Antigel/Liquide de Refroidissement Prédilué 50/50', formula:'-', mw:null, density:null, typicalConc:'liquide', purity:'-', precautions:'Toxique'},
+  {id:'Ethanol_95', name:'Ethyl Alcohol, Denatured, 95% Solution', formula:'C₂H₅OH', mw:46.07, density:0.789, typicalConc:'liquide', purity:'95%', precautions:'Inflammable'},
+  {id:'Benzoic_acid', name:'Acide Benzoïque', formula:'C₆H₅COOH', mw:122.12, density:null, typicalConc:'solide', purity:'99%', precautions:'Irritant'},
+  {id:'Indigo_carmine', name:'Carmin Indigo', formula:'C₁₆H₈N₂Na₂O₈S₂', mw:466.36, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'SiC', name:'Carbure Silicium', formula:'SiC', mw:40.10, density:3.21, typicalConc:'solide', purity:'98%', precautions:'Poussières'},
+  {id:'NH4NO3_ACS', name:'Nitrate d\'Ammonium, Cristallisé ACS', formula:'NH₄NO₃', mw:80.04, density:null, typicalConc:'solide', purity:'ACS', precautions:'Oxydant'},
+  {id:'CaCO3_ACS', name:'Carbonate de Calcium', formula:'CaCO₃', mw:100.09, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'HCl_1M', name:'Acide Chlorhydrique, Solution de 1 Molaire (1 Normale)', formula:'HCl', mw:36.46, density:null, typicalConc:'1 M', purity:'-', precautions:'Corrosif'},
+  {id:'Muriatic_acid', name:'Muriatic Acid', formula:'HCl', mw:36.46, density:1.18, typicalConc:'10-12 M', purity:'31-33%', precautions:'Corrosif'},
+  {id:'Formalin_10', name:'Formaline 10%, Neutre mis en Mémoire Tamponné', formula:'CH₂O', mw:30.03, density:null, typicalConc:'10%', purity:'-', precautions:'Cancérigène'},
+  {id:'Methyl_hydrate', name:'Hydrate de Méthyle (solvant)', formula:'CH₃OH', mw:32.04, density:0.791, typicalConc:'liquide', purity:'99%', precautions:'Toxique; inflammable'},
+  {id:'Citric_acid', name:'Acide Citrique Anhydre', formula:'C₆H₈O₇', mw:192.12, density:null, typicalConc:'solide', purity:'99%', precautions:'Irritant'},
+  {id:'Electrode_storage', name:'Electrode Storage Solution', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Cd', name:'Cadmium', formula:'Cd', mw:112.41, density:8.65, typicalConc:'solide', purity:'99%', precautions:'Très toxique'},
+  {id:'Aspirin', name:'Acetylsalicylic Acid', formula:'C₉H₈O₄', mw:180.16, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'NH42SO4', name:'Le Sulfate d\'Ammonium', formula:'(NH₄)₂SO₄', mw:132.14, density:null, typicalConc:'solide', purity:'99%', precautions:'Irritant'},
+  {id:'Acetic_glacial', name:'Acide Acétique Glacial', formula:'CH₃COOH', mw:60.05, density:1.049, typicalConc:'liquide', purity:'99-100%', precautions:'Corrosif'},
+  {id:'Formaldehyde_37', name:'Formaldehyde 37%', formula:'CH₂O', mw:30.03, density:1.09, typicalConc:'37%', purity:'37%', precautions:'Cancérigène'},
+  {id:'Bromothymol_ACS', name:'Bleu de Bromothymol ACS', formula:'C₂₇H₂₈Br₂O₅S', mw:null, density:null, typicalConc:'solution', purity:'ACS', precautions:'--'},
+  {id:'Na2SO4', name:'Sulfate de Sodium', formula:'Na₂SO₄', mw:142.04, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Buffer_pH2_sol', name:'Solution Tampon pH 2', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'K2CO3_anhydre', name:'Carbonate de Potassium (Anhydre)', formula:'K₂CO₃', mw:138.21, density:null, typicalConc:'solide', purity:'99%', precautions:'Irritant'},
+  {id:'CaCO3_natural', name:'Carbonate de Calcium', formula:'CaCO₃', mw:100.09, density:null, typicalConc:'solide', purity:'98%', precautions:'--'},
+  {id:'Methyl_orange', name:'Méthyle Orange, Sel de Sodium', formula:'C₁₄H₁₄N₃NaO₃S', mw:327.33, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'H2SO4_conc', name:'Acide Sulfurique', formula:'H₂SO₄', mw:98.08, density:1.84, typicalConc:'liquide', purity:'95-98%', precautions:'Très corrosif'},
+  {id:'Butanol', name:'n-Butyle Alcool', formula:'C₄H₉OH', mw:74.12, density:0.81, typicalConc:'liquide', purity:'99%', precautions:'Inflammable'},
+  {id:'Acetic_1N', name:'Acetic Acid, 1N Solution in Water', formula:'CH₃COOH', mw:60.05, density:null, typicalConc:'1 N', purity:'-', precautions:'Corrosif'},
+  {id:'MgSO4_anhydre', name:'Sulfate de Magnésium Anhydre', formula:'MgSO₄', mw:120.37, density:null, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'H2SO4_0.12N', name:'Acide Sulfurique .12N', formula:'H₂SO₄', mw:98.08, density:null, typicalConc:'0.12 N', purity:'-', precautions:'Corrosif'},
+  {id:'Hardener', name:'Réactif de Durcissement', formula:'-', mw:null, density:null, typicalConc:'liquide', purity:'-', precautions:'Irritant'},
+  {id:'Methyl_red', name:'Methyl Red, Crystallized ACS', formula:'C₁₅H₁₅N₃O₂', mw:269.30, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'Ponceau_3B', name:'Cerotine Ponceau 3B', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'BaCl2_2H2O', name:'Chlorure de Baryum dihydraté ACS', formula:'BaCl₂·2H₂O', mw:244.26, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'Boric_acid', name:'Acide Borique, Cristaux ACS', formula:'H₃BO₃', mw:61.83, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'Buffer_pH12', name:'Buffer, Reference Standard, pH12.00 ± 0.01 at 25°C', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Zn_mossy', name:'Zinc, Granular and Mossy', formula:'Zn', mw:65.38, density:7.14, typicalConc:'solide', purity:'99%', precautions:'--'},
+  {id:'Na2S2O5', name:'Sodium Métabisulfite', formula:'Na₂S₂O₅', mw:190.11, density:null, typicalConc:'solide', purity:'98%', precautions:'Irritant'},
+  {id:'Oxalic_acid', name:'Acide Oxalique Dihydrate', formula:'H₂C₂O₄·2H₂O', mw:126.07, density:null, typicalConc:'solide', purity:'99%', precautions:'Toxique'},
+  {id:'KMnO4_pure', name:'Potassium Permanganate', formula:'KMnO₄', mw:158.04, density:null, typicalConc:'solide', purity:'99%', precautions:'Oxydant puissant'},
+  {id:'Benzaldehyde', name:'Benzaldehyde', formula:'C₆H₅CHO', mw:106.12, density:1.044, typicalConc:'liquide', purity:'99%', precautions:'Irritant'},
+  {id:'NH4OH', name:'L\'Hydroxyde d\'Ammonium', formula:'NH₄OH', mw:35.05, density:0.91, typicalConc:'solution', purity:'28-30%', precautions:'Toxique par inhalation'},
+  {id:'Phenol_red_Na', name:'Phénol Rouge, Sel de Sodium', formula:'C₁₉H₁₄NaO₅S', mw:376.36, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'HCl_conc', name:'Acide Chlorhydrique Concentré', formula:'HCl', mw:36.46, density:1.18, typicalConc:'liquide', purity:'37%', precautions:'Corrosif'},
+  {id:'K2Cr2O7', name:'Potassium Dichromate', formula:'K₂Cr₂O₇', mw:294.18, density:null, typicalConc:'solide', purity:'99%', precautions:'Cancérigène'},
+  {id:'Buffer_pH7', name:'Buffer, Reference Standard, pH7.00 ± 0.01 at 25°C', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Buffer_pH10', name:'Buffer, Reference Standard, pH10.00 ± 0.01 at 25°C', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Buffer_pH4', name:'Buffer, Reference Standard, pH4.00 ± 0.01 at 25°C', formula:'-', mw:null, density:null, typicalConc:'solution', purity:'-', precautions:'--'},
+  {id:'Na2CO3_ACS', name:'Carbonate de Sodium Anhydre', formula:'Na₂CO₃', mw:105.99, density:null, typicalConc:'solide', purity:'ACS', precautions:'Irritant'},
+  {id:'NaOH_ACS', name:'Hydroxyde de Sodium', formula:'NaOH', mw:40.00, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'KOH_ACS', name:'Hydroxyde de Potassium', formula:'KOH', mw:56.11, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'NaCl_ACS', name:'Chlorure de Sodium', formula:'NaCl', mw:58.44, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'KCl_ACS2', name:'Potassium Chloride', formula:'KCl', mw:74.55, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'CaCl2_anhydre', name:'Chlorure de Calcium Anhydre', formula:'CaCl₂', mw:110.98, density:null, typicalConc:'solide', purity:'96%', precautions:'Irritant'},
+  {id:'NaHCO3_ACS', name:'Bicarbonate de Sodium', formula:'NaHCO₃', mw:84.01, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'Na2SO4_ACS', name:'Sulfate de Sodium Anhydre', formula:'Na₂SO₄', mw:142.04, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'Na2S2O3_ACS', name:'Thiosulfate de Sodium', formula:'Na₂S₂O₃', mw:158.11, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'NaNO3_ACS', name:'Nitrate de Sodium', formula:'NaNO₃', mw:85.00, density:null, typicalConc:'solide', purity:'ACS', precautions:'Oxydant'},
+  {id:'KNO3_ACS', name:'Nitrate de Potassium', formula:'KNO₃', mw:101.10, density:null, typicalConc:'solide', purity:'ACS', precautions:'Oxydant'},
+  {id:'CuSO4_ACS', name:'Sulfate de Cuivre', formula:'CuSO₄', mw:159.61, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'FeCl3_ACS', name:'Chlorure de Fer (III)', formula:'FeCl₃', mw:162.20, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'NH4Cl_ACS', name:'Chlorure d\'Ammonium', formula:'NH₄Cl', mw:53.49, density:null, typicalConc:'solide', purity:'ACS', precautions:'Irritant'},
+  {id:'(NH4)2SO4_ACS', name:'Sulfate d\'Ammonium', formula:'(NH₄)₂SO₄', mw:132.14, density:null, typicalConc:'solide', purity:'ACS', precautions:'Irritant'},
+  {id:'MgSO4_ACS', name:'Sulfate de Magnésium', formula:'MgSO₄', mw:120.37, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'CaCO3_ACS2', name:'Carbonate de Calcium', formula:'CaCO₃', mw:100.09, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'BaCl2_ACS', name:'Chlorure de Baryum', formula:'BaCl₂', mw:208.23, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'KI_ACS', name:'Iodure de Potassium', formula:'KI', mw:166.00, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'KBr_ACS', name:'Bromure de Potassium', formula:'KBr', mw:119.00, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'NaF_ACS', name:'Fluorure de Sodium', formula:'NaF', mw:41.99, density:null, typicalConc:'solide', purity:'ACS', precautions:'Très toxique'},
+  {id:'NaBr_ACS', name:'Bromure de Sodium', formula:'NaBr', mw:102.89, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'NaI_ACS', name:'Iodure de Sodium', formula:'NaI', mw:149.89, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'LiCl_ACS', name:'Chlorure de Lithium', formula:'LiCl', mw:42.39, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'SrCl2_ACS', name:'Chlorure de Strontium', formula:'SrCl₂', mw:158.53, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'Ba(OH)2_ACS', name:'Hydroxyde de Baryum', formula:'Ba(OH)₂', mw:171.34, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'Ca(OH)2_ACS', name:'Hydroxyde de Calcium', formula:'Ca(OH)₂', mw:74.09, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'Mg(OH)2_ACS', name:'Hydroxyde de Magnésium', formula:'Mg(OH)₂', mw:58.32, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'AlCl3_ACS', name:'Chlorure d\'Aluminium', formula:'AlCl₃', mw:133.34, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'FeSO4_ACS', name:'Sulfate de Fer (II)', formula:'FeSO₄', mw:151.91, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'ZnSO4_ACS', name:'Sulfate de Zinc', formula:'ZnSO₄', mw:161.45, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'NiSO4_ACS', name:'Sulfate de Nickel', formula:'NiSO₄', mw:154.76, density:null, typicalConc:'solide', purity:'ACS', precautions:'Cancérigène'},
+  {id:'CoCl2_ACS', name:'Chlorure de Cobalt', formula:'CoCl₂', mw:129.84, density:null, typicalConc:'solide', purity:'ACS', precautions:'Cancérigène'},
+  {id:'MnSO4_ACS', name:'Sulfate de Manganèse', formula:'MnSO₄', mw:151.00, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'CrCl3_ACS', name:'Chlorure de Chrome (III)', formula:'CrCl₃', mw:158.36, density:null, typicalConc:'solide', purity:'ACS', precautions:'Cancérigène'},
+  {id:'AgNO3_ACS2', name:'Nitrate d\'Argent', formula:'AgNO₃', mw:169.87, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'HgCl2_ACS', name:'Chlorure de Mercure (II)', formula:'HgCl₂', mw:271.50, density:null, typicalConc:'solide', purity:'ACS', precautions:'Très toxique'},
+  {id:'Pb(NO3)2_ACS', name:'Nitrate de Plomb', formula:'Pb(NO₃)₂', mw:331.21, density:null, typicalConc:'solide', purity:'ACS', precautions:'Très toxique'},
+  {id:'CuCl2_ACS', name:'Chlorure de Cuivre (II)', formula:'CuCl₂', mw:134.45, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'ZnCl2_ACS', name:'Chlorure de Zinc', formula:'ZnCl₂', mw:136.30, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'CdCl2_ACS', name:'Chlorure de Cadmium', formula:'CdCl₂', mw:183.32, density:null, typicalConc:'solide', purity:'ACS', precautions:'Très toxique'},
+  {id:'SnCl2_ACS', name:'Chlorure d\'Etain (II)', formula:'SnCl₂', mw:189.62, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'BiCl3_ACS', name:'Chlorure de Bismuth', formula:'BiCl₃', mw:315.34, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'SbCl3_ACS', name:'Chlorure d\'Antimoine', formula:'SbCl₃', mw:228.12, density:null, typicalConc:'solide', purity:'ACS', precautions:'Corrosif'},
+  {id:'As2O3_ACS', name:'Trioxyde de Diarsenic', formula:'As₂O₃', mw:197.84, density:null, typicalConc:'solide', purity:'ACS', precautions:'Très toxique'},
+  {id:'SeO2_ACS', name:'Dioxyde de Sélénium', formula:'SeO₂', mw:110.96, density:null, typicalConc:'solide', purity:'ACS', precautions:'Très toxique'},
+  {id:'TeO2_ACS', name:'Dioxyde de Tellure', formula:'TeO₂', mw:159.60, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'V2O5_ACS', name:'Pentoxyde de Vanadium', formula:'V₂O₅', mw:181.88, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'MoO3_ACS', name:'Trioxyde de Molybdène', formula:'MoO₃', mw:143.94, density:null, typicalConc:'solide', purity:'ACS', precautions:'Toxique'},
+  {id:'WO3_ACS', name:'Trioxyde de Tungstène', formula:'WO₃', mw:231.84, density:null, typicalConc:'solide', purity:'ACS', precautions:'--'},
+  {id:'TiO2_ACS', name:'Dioxyde de Titane', formula:'TiO₂', mw:79.87, density:null, typicalConc:'solide', purity:'ACS', precautions:'Poussières'},
+  {id:'ZrO2_ACS', name:'Dioxyde de Zirconium', formula:'ZrO₂', mw:123.22, density:null, typicalConc:'solide', purity:'ACS', precautions:'Poussières'},
+  {id:'HfO2_ACS', name:'Dioxyde de Hafnium', formula:'HfO₂', mw:210.49, density:null, typicalConc:'solide', purity:'ACS', precautions:'Poussières'},
+  {id:'ThO2_ACS', name:'Dioxyde de Thorium', formula:'ThO₂', mw:264.04, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'UO2_ACS', name:'Dioxyde d\'Uranium', formula:'UO₂', mw:270.03, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'PuO2_ACS', name:'Dioxyde de Plutonium', formula:'PuO₂', mw:276.06, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'AmO2_ACS', name:'Dioxyde d\'Américium', formula:'AmO₂', mw:275.06, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'CmO2_ACS', name:'Dioxyde de Curium', formula:'CmO₂', mw:276.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'BkO2_ACS', name:'Dioxyde de Berkélium', formula:'BkO₂', mw:277.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'CfO2_ACS', name:'Dioxyde de Californium', formula:'CfO₂', mw:278.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'EsO2_ACS', name:'Dioxyde d\'Einsteinium', formula:'EsO₂', mw:279.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'FmO2_ACS', name:'Dioxyde de Fermium', formula:'FmO₂', mw:280.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'MdO2_ACS', name:'Dioxyde de Mendélévium', formula:'MdO₂', mw:281.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'NoO2_ACS', name:'Dioxyde de Nobélium', formula:'NoO₂', mw:282.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'LrO2_ACS', name:'Dioxyde de Lawrencium', formula:'LrO₂', mw:283.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'RfO2_ACS', name:'Dioxyde de Rutherfordium', formula:'RfO₂', mw:284.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'DbO2_ACS', name:'Dioxyde de Dubnium', formula:'DbO₂', mw:285.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'SgO2_ACS', name:'Dioxyde de Seaborgium', formula:'SgO₂', mw:286.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'BhO2_ACS', name:'Dioxyde de Bohrium', formula:'BhO₂', mw:287.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'HsO2_ACS', name:'Dioxyde de Hassium', formula:'HsO₂', mw:288.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'MtO2_ACS', name:'Dioxyde de Meitnerium', formula:'MtO₂', mw:289.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'DsO2_ACS', name:'Dioxyde de Darmstadtium', formula:'DsO₂', mw:290.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'RgO2_ACS', name:'Dioxyde de Roentgenium', formula:'RgO₂', mw:291.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'CnO2_ACS', name:'Dioxyde de Copernicium', formula:'CnO₂', mw:292.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'NhO2_ACS', name:'Dioxyde de Nihonium', formula:'NhO₂', mw:293.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'FlO2_ACS', name:'Dioxyde de Flerovium', formula:'FlO₂', mw:294.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'McO2_ACS', name:'Dioxyde de Moscovium', formula:'McO₂', mw:295.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'LvO2_ACS', name:'Dioxyde de Livermorium', formula:'LvO₂', mw:296.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'TsO2_ACS', name:'Dioxyde de Tennessine', formula:'TsO₂', mw:297.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'},
+  {id:'OgO2_ACS', name:'Dioxyde d\'Oganesson', formula:'OgO₂', mw:298.07, density:null, typicalConc:'solide', purity:'ACS', precautions:'Radioactif'}
+];
+
+/* =========================
+   Initialisation UI
+   ========================= */
+const chemListEl = document.getElementById('chemList');
+const countTag = document.getElementById('countTag');
+const selName = document.getElementById('selName');
+const selFormula = document.getElementById('selFormula');
+const selMw = document.getElementById('selMw');
+const selDensity = document.getElementById('selDensity');
+const selConc = document.getElementById('selConc');
+const selPurity = document.getElementById('selPurity');
+const selPrec = document.getElementById('selPrec');
+
+let SELECTED = null;
+let themeDark = false;
+
+function renderList(filter=''){
+  chemListEl.innerHTML = '';
+  const arr = CHEM_DB.filter(c => (c.name + ' ' + c.formula + ' ' + c.id).toLowerCase().includes(filter.toLowerCase()));
+  countTag.textContent = `${arr.length} substances`;
+  arr.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'chem-item';
+    div.innerHTML = `<div>
+        <div class="chem-name">${c.id} — ${c.name}</div>
+        <div class="muted" style="font-size:12px">${c.formula} · ${c.mw ? c.mw+' g·mol⁻¹' : '--'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end">
+        <div class="pill">${c.typicalConc || '--'}</div>
+        <div class="purity-badge ${getPurityClass(c.purity)}" style="margin-top:4px">${c.purity || '--'}</div>
+        <button title="Sélectionner" onclick="selectChem('${c.id}')" style="margin-top:8px;padding:6px 8px;border-radius:8px;border:none;background:transparent;color:var(--accent);cursor:pointer">→</button>
+      </div>`;
+    chemListEl.appendChild(div);
+  });
+}
+
+function getPurityClass(purity) {
+  if (!purity) return '';
+  if (purity.includes('ACS')) return 'purity-ACS';
+  if (purity.includes('99%') || purity.includes('100%')) return 'purity-high';
+  if (purity.includes('98%') || purity.includes('97%') || purity.includes('96%')) return 'purity-medium';
+  return 'purity-low';
+}
+
+renderList();
+
+function filterList(){
+  const q = document.getElementById('searchInput').value || '';
+  renderList(q);
+}
+
+function selectChem(id){
+  const c = CHEM_DB.find(x=>x.id===id);
+  if(!c) return;
+  SELECTED = c;
+  // fill right panel
+  selName.textContent = `${c.name} (${c.id})`;
+  selFormula.textContent = c.formula;
+  selMw.textContent = c.mw ? c.mw : '--';
+  selDensity.textContent = c.density ? c.density + ' g·cm⁻³' : '--';
+  selConc.textContent = c.typicalConc || '--';
+  selPurity.textContent = c.purity || '--';
+  selPrec.textContent = c.precautions || '--';
+
+  // fill inputs for fast use
+  document.getElementById('inputSub').value = `${c.id} — ${c.name}`;
+  if(c.mw) document.getElementById('inputMmw').value = c.mw;
+  if(c.density) document.getElementById('inputDensity').value = c.density;
+  // if typicalConc is like '12 M' extract numeric:
+  if(c.typicalConc && typeof c.typicalConc === 'string'){
+    const num = c.typicalConc.match(/[\d\.]+/);
+    if(num) document.getElementById('c1').value = parseFloat(num[0]);
+  }
+}
+
+/* =========================
+   Panels
+   ========================= */
+function showPanel(p){
+  document.getElementById('panel-prep').style.display = p==='prep' ? 'block':'none';
+  document.getElementById('panel-convert').style.display = p==='convert' ? 'block':'none';
+  document.getElementById('panel-periodic').style.display = p==='periodic' ? 'block':'none';
+  document.getElementById('panel-guide').style.display = p==='guide' ? 'block':'none';
+}
+
+/* =========================
+   Theme toggle
+   ========================= */
+function toggleTheme(){
+  themeDark = !themeDark;
+  document.documentElement.classList.toggle('dark', themeDark);
+  document.getElementById('themeToggle').textContent = themeDark ? '☀️' : '🌙';
+}
+
+/* =========================
+   Reset global
+   ========================= */
+function resetAll(){
+  document.querySelectorAll('input').forEach(i=>{ if(i.type!=='button') i.value=''; });
+  SELECTED=null;
+  selName.textContent='Aucune';
+  selFormula.textContent='--';
+  selMw.textContent='--';
+  selDensity.textContent='--';
+  selConc.textContent='--';
+  selPurity.textContent='--';
+  selPrec.textContent='--';
+  document.getElementById('prepResult').style.display='none';
+}
+
+/* =========================
+   Quick examples
+   ========================= */
+function quickExample(key){
+  if(key==='HCl'){
+    selectChem('HCl');
+    document.getElementById('prepType').value='dilution';
+    switchPrep();
+    document.getElementById('c1').value=12;
+    document.getElementById('c2').value=1;
+    document.getElementById('v2').value=500;
+    calcDilution();
+  } else if(key==='NaOH'){
+    selectChem('NaOH');
+    document.getElementById('prepType').value='solid';
+    switchPrep();
+    document.getElementById('mass_solid').value=1.0;
+    document.getElementById('V_sol').value=250;
+    if(SELECTED && SELECTED.mw) document.getElementById('Mw_sol').value=SELECTED.mw;
+    calcSolid();
+  } else if(key==='C2H5OH'){
+    selectChem('C2H5OH');
+    document.getElementById('prepType').value='liquid_mass';
+    switchPrep();
+    document.getElementById('concLiquid').value='';
+    document.getElementById('V_liq').value=100;
+    if(SELECTED && SELECTED.density) document.getElementById('D_liq').value=SELECTED.density;
+    calcLiquidMass();
+  }
+}
+
+/* =========================
+   Switch preparation blocks
+   ========================= */
+function switchPrep(){
+  const t = document.getElementById('prepType').value;
+  document.getElementById('block-dilution').style.display = t==='dilution' ? 'block':'none';
+  document.getElementById('block-solid').style.display = t==='solid' ? 'block':'none';
+  document.getElementById('block-gas').style.display = t==='gas' ? 'block':'none';
+  document.getElementById('block-liquid').style.display = t==='liquid_mass' ? 'block':'none';
+  const unit = document.getElementById('unitSelect').value;
+  document.getElementById('vUnitLabel').textContent = unit;
+}
+
+/* =========================
+   CALCULS: Dilution
+   C1·V1 = C2·V2
+   V1 = C2·V2 / C1
+   ========================= */
+function calcDilution(){
+  const c1 = parseFloat(document.getElementById('c1').value);
+  const c2 = parseFloat(document.getElementById('c2').value);
+  let v2 = parseFloat(document.getElementById('v2').value);
+  const unit = document.getElementById('unitSelect').value;
+  if(!c1 || !c2 || !v2){ alert('Veuillez remplir C1, C2 et V2'); return; }
+  // normaliser V2 en mL si unité L
+  if(unit === 'L') v2 = v2 * 1000;
+  const v1 = (c2 * v2) / c1; // mL
+  const water = v2 - v1;
+  const formula = SELECTED ? SELECTED.formula : (document.getElementById('inputSub').value || 'Solution');
+
+  const prepHTML = `
+    <div><strong>Substance:</strong> ${formula}</div>
+    <div><strong>Volume initial à mesurer V₁:</strong> ${v1.toFixed(2)} mL</div>
+    <div><strong>Volume d'eau à ajouter:</strong> ${water.toFixed(2)} mL</div>
+    <div><strong>Volume final V₂:</strong> ${v2.toFixed(2)} mL (${(v2/1000).toFixed(3)} L)</div>
+    <div class="protocol">
+      <h4>Protocole de Dilution</h4>
+      <ol>
+        <li>Prélever ${v1.toFixed(2)} mL de la solution concentrée (${c1} M) à l'aide d'une pipette ou éprouvette graduée</li>
+        <li>Transférer dans une fiole jaugée de ${v2.toFixed(2)} mL</li>
+        <li>Ajouter environ la moitié du volume d'eau distillée nécessaire et agiter doucement</li>
+        <li>Compléter avec de l'eau distillée jusqu'au trait de jauge</li>
+        <li>Boucher et homogénéiser soigneusement par retournements</li>
+        <li>Étiqueter la solution avec la concentration (${c2} M) et la date</li>
+      </ol>
+    </div>
+  `;
+  const el = document.getElementById('prepResult');
+  el.innerHTML = prepHTML;
+  el.style.display = 'block';
+}
+
+/* =========================
+   CALCUL Solid dissolution:
+   m (g) = M (mol·L-1) × V (L) × Mw (g·mol-1)
+   ========================= */
+function calcSolid(){
+  const mass = parseFloat(document.getElementById('mass_solid').value);
+  let V = parseFloat(document.getElementById('V_sol').value);
+  const Mw = parseFloat(document.getElementById('Mw_sol').value) || parseFloat(document.getElementById('inputMmw').value);
+  if(!mass || !V || !Mw){ alert('Veuillez remplir la masse, le volume et la masse molaire'); return; }
+  // V en L
+  const V_L = V / 1000;
+  const moles = mass / Mw;
+  const concentration = moles / V_L;
+  const formula = SELECTED ? SELECTED.formula : (document.getElementById('inputSub').value || 'Substance');
+
+  const html = `
+    <div><strong>Substance:</strong> ${formula}</div>
+    <div><strong>Masse pesée:</strong> ${mass.toFixed(4)} g</div>
+    <div><strong>Nombre de moles:</strong> ${moles.toFixed(4)} mol</div>
+    <div><strong>Concentration finale:</strong> ${concentration.toFixed(4)} mol/L</div>
+    <div><strong>Volume final:</strong> ${V.toFixed(2)} mL</div>
+    <div class="protocol">
+      <h4>Protocole de Dissolution d'un Solide</h4>
+      <ol>
+        <li>Peser précisément ${mass.toFixed(4)} g de ${formula} sur une balance analytique</li>
+        <li>Transférer quantitativement dans une fiole jaugée de ${V.toFixed(2)} mL à l'aide d'un entonnoir</li>
+        <li>Rincer le papier pesée et l'entonnoir avec un peu d'eau distillée dans la fiole</li>
+        <li>Ajouter environ 50% du volume final en eau distillée</li>
+        <li>Agiter jusqu'à dissolution complète (chauffer légèrement si nécessaire)</li>
+        <li>Compléter avec de l'eau distillée jusqu'au trait de jauge</li>
+        <li>Homogénéiser soigneusement par retournements</li>
+        <li>Transvaser dans un flacon propre et étiqueter</li>
+      </ol>
+    </div>
+  `;
+  const el = document.getElementById('prepResult');
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+
+/* =========================
+   CALCUL Gas preparation:
+   m = volume × densité
+   n = m / Mw
+   C = n / V_solution
+   ========================= */
+function calcGas(){
+  const volume = parseFloat(document.getElementById('volume_gas').value);
+  const density = parseFloat(document.getElementById('density_gas').value);
+  const Mw = parseFloat(document.getElementById('Mw_gas').value) || parseFloat(document.getElementById('inputMmw').value);
+  if(!volume || !density || !Mw){ alert('Veuillez remplir le volume, la densité et la masse molaire'); return; }
+  
+  const mass = volume * density;
+  const moles = mass / Mw;
+  const concentration = moles / 1; // Pour 1L de solution
+  
+  const formula = SELECTED ? SELECTED.formula : (document.getElementById('inputSub').value || 'Gaz');
+
+  const html = `
+    <div><strong>Substance:</strong> ${formula}</div>
+    <div><strong>Volume de gaz:</strong> ${volume.toFixed(2)} L</div>
+    <div><strong>Masse correspondante:</strong> ${mass.toFixed(4)} g</div>
+    <div><strong>Nombre de moles:</strong> ${moles.toFixed(4)} mol</div>
+    <div><strong>Concentration finale (pour 1L):</strong> ${concentration.toFixed(4)} mol/L</div>
+    <div class="protocol">
+      <h4>Protocole de Préparation à partir d'un Gaz</h4>
+      <ol>
+        <li>Mesurer ${volume.toFixed(2)} L de gaz à l'aide d'une éprouvette à gaz ou d'un gazomètre</li>
+        <li>Transférer le gaz dans un ballon de dissolution adapté</li>
+        <li>Refroidir le solvant si la dissolution est exothermique</li>
+        <li>Introduire le gaz progressivement sous agitation constante</li>
+        <li>Contrôler la température et la pression pendant la dissolution</li>
+        <li>Une fois la dissolution complète, transférer dans une fiole jaugée de 1 L</li>
+        <li>Compléter avec le solvant jusqu'au trait de jauge</li>
+        <li>Homogénéiser et vérifier la concentration par titrage si nécessaire</li>
+        <li>Stocker dans un récipient approprié et étiqueter</li>
+      </ol>
+    </div>
+  `;
+  const el = document.getElementById('prepResult');
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+
+/* =========================
+   CALCUL Liquid mass via densité:
+   ========================= */
+function calcLiquidMass(){
+  const conc0 = parseFloat(document.getElementById('concLiquid').value); // mol/L
+  let V = parseFloat(document.getElementById('V_liq').value); // mL final
+  const dens = parseFloat(document.getElementById('D_liq').value); // g/cm3
+  const unit = document.getElementById('unitSelect').value;
+  if(unit === 'L') V = V * 1000;
+  // if no conc0 provided, just compute mass from desired volume using density
+  const formula = SELECTED ? SELECTED.formula : (document.getElementById('inputSub').value || 'Liquide');
+
+  if(!conc0){
+    if(!dens){ alert('Pour ce type de calcul indiquez au moins la densité ou la concentration commerciale.'); return; }
+    // masse à prélever pour V mL = dens (g/cm3) * V (mL)
+    // 1 g/cm3 = 1 g/mL
+    const mass = dens * V;
+    const html = `
+      <div><strong>Substance:</strong> ${formula}</div>
+      <div><strong>Volume à prélever:</strong> ${V.toFixed(2)} mL</div>
+      <div><strong>Masse correspondante:</strong> ${mass.toFixed(2)} g</div>
+      <div class="protocol">
+        <h4>Protocole de Prélèvement d'un Liquide</h4>
+        <ol>
+          <li>Mesurer ${V.toFixed(2)} mL de liquide à l'aide d'une éprouvette graduée ou d'une pipette</li>
+          <li>Transférer dans le récipient de destination</li>
+          <li>Rincer l'éprouvette/pipette avec un peu de solvant si nécessaire</li>
+          <li>Noter la masse correspondante: ${mass.toFixed(2)} g</li>
+        </ol>
+      </div>
+    `;
+    document.getElementById('prepResult').innerHTML = html;
+    document.getElementById('prepResult').style.display = 'block';
+    return;
+  }
+  // si conc0 fournie => calculer volume prélevé de solution commerciale
+  const Cdesired = parseFloat(prompt('Concentration désirée (mol/L):', '1'));
+  if(!Cdesired || isNaN(Cdesired)) return;
+  
+  const Vfinal_L = V / 1000;
+  const Vprelev_L = (Cdesired * Vfinal_L) / conc0;
+  const Vprelev_mL = Vprelev_L * 1000;
+  // masse du volume prélevé = dens (g/mL) * Vprelev_mL
+  const massPrelev = (dens || 0) * Vprelev_mL;
+  const html = `
+    <div><strong>Substance:</strong> ${formula}</div>
+    <div><strong>Volume final désiré:</strong> ${V.toFixed(2)} mL</div>
+    <div><strong>Concentration commerciale:</strong> ${conc0} mol·L⁻¹</div>
+    <div><strong>Concentration désirée:</strong> ${Cdesired} mol·L⁻¹</div>
+    <div><strong>Volume à prélever de la solution commerciale:</strong> ${Vprelev_mL.toFixed(2)} mL</div>
+    <div><strong>Masse correspondante:</strong> ${massPrelev.toFixed(2)} g</div>
+    <div class="protocol">
+      <h4>Protocole de Dilution d'un Liquide</h4>
+      <ol>
+        <li>Prélever ${Vprelev_mL.toFixed(2)} mL de la solution commerciale (${conc0} M)</li>
+        <li>Utiliser une pipette graduée ou une burette pour plus de précision</li>
+        <li>Transférer dans une fiole jaugée de ${V.toFixed(2)} mL</li>
+        <li>Compléter avec le solvant jusqu'au trait de jauge</li>
+        <li>Homogénéiser soigneusement</li>
+        <li>Étiqueter avec la concentration finale (${Cdesired} M)</li>
+      </ol>
+    </div>
+  `;
+  document.getElementById('prepResult').innerHTML = html;
+  document.getElementById('prepResult').style.display = 'block';
+}
+
+/* =========================
+   COPY selected
+   ========================= */
+function copySelected(){
+  if(!SELECTED) { alert('Aucune substance sélectionnée'); return; }
+  const txt = `${SELECTED.id} — ${SELECTED.name}\nFormule: ${SELECTED.formula}\nMw: ${SELECTED.mw||'--'} g·mol⁻¹\nDensité: ${SELECTED.density||'--'} g·cm⁻³\nPureté: ${SELECTED.purity||'--'}\nPrecautions: ${SELECTED.precautions||'--'}`;
+  navigator.clipboard.writeText(txt).then(()=>{ alert('Données copiées'); }).catch(()=>{ alert('Impossible de copier'); });
+}
+
+/* =========================
+   Print / Export (utilise print)
+   ========================= */
+function printResults(){
+  window.print();
+}
+
+/* =========================
+   Convertisseurs (fonctions simples)
+   ========================= */
+function convTemp(from){
+  const c = parseFloat(document.getElementById('tC').value);
+  const f = parseFloat(document.getElementById('tF').value);
+  const k = parseFloat(document.getElementById('tK').value);
+  if(from==='C' && !isNaN(c)){
+    document.getElementById('tF').value = (c*9/5 +32).toFixed(2);
+    document.getElementById('tK').value = (c + 273.15).toFixed(2);
+  } else if(from==='F' && !isNaN(f)){
+    document.getElementById('tC').value = ((f-32)*5/9).toFixed(2);
+    document.getElementById('tK').value = (((f-32)*5/9)+273.15).toFixed(2);
+  } else if(from==='K' && !isNaN(k)){
+    document.getElementById('tC').value = (k-273.15).toFixed(2);
+    document.getElementById('tF').value = ((k-273.15)*9/5 + 32).toFixed(2);
+  }
+}
+function convPressure(from){
+  const pa = parseFloat(document.getElementById('pPa').value);
+  const bar = parseFloat(document.getElementById('pBar').value);
+  const atm = parseFloat(document.getElementById('pAtm').value);
+  if(!isNaN(pa) && from==='Pa'){
+    document.getElementById('pBar').value = (pa / 100000).toFixed(6);
+    document.getElementById('pAtm').value = (pa / 101325).toFixed(6);
+  } else if(!isNaN(bar) && from==='bar'){
+    document.getElementById('pPa').value = (bar * 100000).toFixed(2);
+    document.getElementById('pAtm').value = (bar / 1.01325).toFixed(6);
+  } else if(!isNaN(atm) && from==='atm'){
+    document.getElementById('pPa').value = (atm * 101325).toFixed(2);
+    document.getElementById('pBar').value = (atm * 1.01325).toFixed(6);
+  }
+}
+function convVol(from){
+  const L = parseFloat(document.getElementById('vL').value);
+  const mL = parseFloat(document.getElementById('vML').value);
+  const m3 = parseFloat(document.getElementById('vM3').value);
+  if(!isNaN(L) && from==='L'){
+    document.getElementById('vML').value = (L*1000).toFixed(6);
+    document.getElementById('vM3').value = (L/1000).toFixed(6);
+  } else if(!isNaN(mL) && from==='mL'){
+    document.getElementById('vL').value = (mL/1000).toFixed(6);
+    document.getElementById('vM3').value = (mL/1000000).toFixed(6);
+  } else if(!isNaN(m3) && from==='m3'){
+    document.getElementById('vL').value = (m3*1000).toFixed(6);
+    document.getElementById('vML').value = (m3*1000000).toFixed(6);
+  }
+}
+function convMass(from){
+  const kg = parseFloat(document.getElementById('mKg').value);
+  const g = parseFloat(document.getElementById('mG').value);
+  const mg = parseFloat(document.getElementById('mMg').value);
+  if(!isNaN(kg) && from==='kg'){
+    document.getElementById('mG').value = (kg*1000).toFixed(6);
+    document.getElementById('mMg').value = (kg*1e6).toFixed(6);
+  } else if(!isNaN(g) && from==='g'){
+    document.getElementById('mKg').value = (g/1000).toFixed(6);
+    document.getElementById('mMg').value = (g*1000).toFixed(6);
+  } else if(!isNaN(mg) && from==='mg'){
+    document.getElementById('mKg').value = (mg/1e6).toFixed(6);
+    document.getElementById('mG').value = (mg/1000).toFixed(6);
+  }
+}
+function convConc(){
+  const mm = parseFloat(document.getElementById('concMm').value);
+  const gL = parseFloat(document.getElementById('conc_gL').value);
+  const Mw = parseFloat(document.getElementById('inputMmw').value) || parseFloat(document.getElementById('Mw_sol').value);
+  if(!isNaN(mm) && Mw){
+    document.getElementById('conc_gL').value = (mm * Mw).toFixed(6);
+  } else if(!isNaN(gL) && Mw){
+    document.getElementById('concMm').value = (gL / Mw).toFixed(6);
+  }
+}
+function convDensity(from){
+  const gcm3 = parseFloat(document.getElementById('dens_gcm3').value);
+  const kgm3 = parseFloat(document.getElementById('dens_kgm3').value);
+  if(!isNaN(gcm3) && from==='gcm3'){
+    document.getElementById('dens_kgm3').value = (gcm3 * 1000).toFixed(4);
+  } else if(!isNaN(kgm3) && from==='kgm3'){
+    document.getElementById('dens_gcm3').value = (kgm3 / 1000).toFixed(6);
+  }
+}
+function convEnergy(from){
+  const J = parseFloat(document.getElementById('eJ').value);
+  const kJ = parseFloat(document.getElementById('ekJ').value);
+  const cal = parseFloat(document.getElementById('ecal').value);
+  if(!isNaN(J) && from==='J'){
+    document.getElementById('ekJ').value = (J/1000).toFixed(6);
+    document.getElementById('ecal').value = (J/4.184).toFixed(6);
+  } else if(!isNaN(kJ) && from==='kJ'){
+    document.getElementById('eJ').value = (kJ*1000).toFixed(6);
+    document.getElementById('ecal').value = (kJ*1000/4.184).toFixed(6);
+  } else if(!isNaN(cal) && from==='cal'){
+    document.getElementById('eJ').value = (cal*4.184).toFixed(6);
+    document.getElementById('ekJ').value = (cal*4.184/1000).toFixed(6);
+  }
+}
+
+/* =========================
+   Reset converters
+   ========================= */
+function resetConverters(){
+  document.querySelectorAll('#panel-convert input').forEach(input => {
+    input.value = '';
+  });
+}
+
+/* =========================
+   Periodic Table
+   ========================= */
+const elementsData = [
+  { number: 1, symbol: "H", name: "Hydrogène", mass: 1.008, category: "nonmetal" },
+  { number: 2, symbol: "He", name: "Hélium", mass: 4.0026, category: "noble-gas" },
+  { number: 3, symbol: "Li", name: "Lithium", mass: 6.94, category: "alkali-metal" },
+  { number: 4, symbol: "Be", name: "Béryllium", mass: 9.0122, category: "alkaline-earth-metal" },
+  { number: 5, symbol: "B", name: "Bore", mass: 10.81, category: "semimetal" },
+  { number: 6, symbol: "C", name: "Carbone", mass: 12.011, category: "nonmetal" },
+  { number: 7, symbol: "N", name: "Azote", mass: 14.007, category: "nonmetal" },
+  { number: 8, symbol: "O", name: "Oxygène", mass: 15.999, category: "nonmetal" },
+  { number: 9, symbol: "F", name: "Fluor", mass: 18.998, category: "halogen" },
+  { number: 10, symbol: "Ne", name: "Néon", mass: 20.18, category: "noble-gas" },
+  { number: 11, symbol: "Na", name: "Sodium", mass: 22.99, category: "alkali-metal" },
+  { number: 12, symbol: "Mg", name: "Magnésium", mass: 24.305, category: "alkaline-earth-metal" },
+  { number: 13, symbol: "Al", name: "Aluminium", mass: 26.982, category: "basic-metal" },
+  { number: 14, symbol: "Si", name: "Silicium", mass: 28.085, category: "semimetal" },
+  { number: 15, symbol: "P", name: "Phosphore", mass: 30.974, category: "nonmetal" },
+  { number: 16, symbol: "S", name: "Soufre", mass: 32.06, category: "nonmetal" },
+  { number: 17, symbol: "Cl", name: "Chlore", mass: 35.45, category: "halogen" },
+  { number: 18, symbol: "Ar", name: "Argon", mass: 39.948, category: "noble-gas" },
+  { number: 19, symbol: "K", name: "Potassium", mass: 39.098, category: "alkali-metal" },
+  { number: 20, symbol: "Ca", name: "Calcium", mass: 40.078, category: "alkaline-earth-metal" }
+];
+
+function createPeriodicTable() {
+  const container = document.getElementById('periodicTable');
+  container.innerHTML = '';
+  
+  // Create empty cells for the periodic table structure
+  for (let i = 0; i < 118; i++) {
+    const element = elementsData.find(el => el.number === i + 1);
+    const cell = document.createElement('div');
+    
+    if (element) {
+      cell.className = `element ${element.category}`;
+      cell.innerHTML = `
+        <div class="element-number">${element.number}</div>
+        <div class="element-symbol">${element.symbol}</div>
+        <div class="element-name">${element.name}</div>
+      `;
+      cell.addEventListener('click', () => showElementDetails(element));
+    } else {
+      cell.className = 'element empty';
+    }
+    
+    container.appendChild(cell);
+  }
+}
+
+function showElementDetails(element) {
+  const detailsBox = document.getElementById('elementDetails');
+  const infoDiv = document.getElementById('element-info');
+  
+  infoDiv.innerHTML = `
+    <p><strong>Nom:</strong> ${element.name}</p>
+    <p><strong>Symbole:</strong> ${element.symbol}</p>
+    <p><strong>Numéro atomique:</strong> ${element.number}</p>
+    <p><strong>Masse atomique:</strong> ${element.mass}</p>
+    <p><strong>Catégorie:</strong> ${getCategoryName(element.category)}</p>
+  `;
+  
+  detailsBox.style.display = 'block';
+}
+
+function getCategoryName(category) {
+  const categories = {
+    'alkali-metal': 'Métal alcalin',
+    'alkaline-earth-metal': 'Métal alcalino-terreux',
+    'transition-metal': 'Métal de transition',
+    'basic-metal': 'Métal de base',
+    'semimetal': 'Métalloïde',
+    'nonmetal': 'Non-métal',
+    'halogen': 'Halogène',
+    'noble-gas': 'Gaz noble',
+    'lanthanide': 'Lanthanide',
+    'actinide': 'Actinide'
+  };
+  return categories[category] || category;
+}
+
+/* =========================
+   Open safety (placeholder)
+   ========================= */
+function openSafety(){
+  if(!SELECTED){ alert('Sélectionnez une substance pour voir la fiche de sécurité (résumé).'); return; }
+  alert(`Fiche succincte de ${SELECTED.name}:\n\nPrécautions: ${SELECTED.precautions || 'Consulter la FDS officielle.'}\n\nToujours consulter la FDS officielle avant manipulation.`);
+}
+
+/* =========================
+   Init
+   ========================= */
+document.addEventListener('DOMContentLoaded', ()=>{
+  showPanel('prep');
+  createPeriodicTable();
+  
+  // Set up language switcher
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      changeLanguage(btn.dataset.lang);
+    });
+  });
+});
+</script>
+</body>
+</html>
+</file>
+
+<file name="README.md">
+# Assistant Laboratoire - Préparation des Solutions
+
+## Description
+Outil complet pour les laboratoires scolaires permettant la préparation de solutions chimiques, les conversions d'unités et la consultation d'une base de données de plus de 250 substances chimiques.
+
+## Fonctionnalités
+
+### 🧪 Préparation des Solutions
+- **Dilution** : Calcul des volumes pour dilution de solutions concentrées
+- **Solides** : Calcul de masse pour dissolution de produits solides  
+- **Gaz** : Préparation à partir de gaz avec calculs de volume et densité
+- **Liquides** : Prélèvement avec prise en compte de la densité
+
+### 🔄 Convertisseurs
+- Température (°C, °F, K)
+- Pression (Pa, bar, atm)
+- Volume (L, mL, m³)
+- Masse (kg, g, mg)
+- Concentration (mol/L ↔ g/L)
+- Densité (g/cm³ ↔ kg/m³)
+- Énergie (J, kJ, cal)
+
+### 🧪 Tableau Périodique
+- Consultation interactive des éléments
+- Informations détaillées pour chaque élément
+
+### 📊 Base de Données
+- **250+ substances chimiques** avec leurs propriétés
+- **Informations de pureté** pour chaque produit
+- **Formules chimiques** et masses molaires
+- **Précautions de sécurité**
+
+## Installation
+1. Téléchargez le fichier ZIP
+2. Extrayez le contenu dans un dossier
+3. Ouvrez `index.html` dans votre navigateur
+
+## Utilisation
+1. **Sélectionnez une substance** dans la base de données
+2. **Choisissez le type de préparation**
+3. **Renseignez les paramètres** demandés
+4. **Cliquez sur Calculer** pour obtenir le protocole détaillé
+
+## Substances Incluses
+La base de données comprend notamment :
+- Acides (HCl, H2SO4, HNO3, CH3COOH, H3PO4)
+- Bases (NaOH, KOH, NH3)
+- Sels (NaCl, KCl, CuSO4, AgNO3)
+- Solvants (Éthanol, Méthanol, Acétone)
+- Gaz (O2, N2, CO2, H2)
+- Indicateurs (Phénolphtaléine, Bleu de bromothymol)
+- Et bien d'autres...
+
+## Langues Supportées
+- 🇫🇷 Français
+- 🇬🇧 Anglais  
+- 🇸🇦 Arabe
+
+## Auteur
+**Brahim Machet**  
+Outil développé pour les laboratoires scolaires - 2025
+
+## Licence
+Usage libre pour les établissements éducatifs
+</file>
+</zip>
